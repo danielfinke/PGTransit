@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">PG Transit</string>
+    <string name="app_bundle_url">https://play.google.com/store/apps/details?id=com.finke.pgtransit</string>
+    <string name="app_bundle">com.finke.pgtransit</string>
+    <string name="dev_email">danielfinke2011@gmail.com</string>
+    
+    <string name="app_id">1381156768791196</string>
+    
+    <!-- Advertising -->
+    <string name="test_device_1">8028BE022833A173EBAE5B0D0C5531BB</string>
+    <string name="ad_unit_id">ca-app-pub-6777698423247584/9485247808</string>
+    
+    <!-- In-app Billing -->
+    <string name="iab_part_1">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArXVuXKYFNexhGXeniFXxoQagcZMa5Ix4VczxVhMNbKxQzhgHOes6Plutie29DCMKOjrwqxkNgyOiD3</string>
+    <string name="iab_part_2">1TBjq7y1KYpLO8oQwhKT0DqxEcoeoPD0mDs3UAwmmG/nvzNs4yhJHAkyRW1h85aOq7r10+jOLR16h7wiTP+CHK6RqgQKbJxEA/oUApqaEUGdrhCMbDhkUlD96V</string>
+    <string name="iab_part_3">GCwW1vQD0vQJenYoUFk/LcYpX2tjy25zyCX8hBleKo7oyA2pG3FGq7LHakC+CsOELXWaK0qsSOqdpunXwO+uc4H9QhkPM/rPUTYWuBE0go92znlgqystkndAk1</string>
+    <string name="iab_part_4">aDDuch2e2xsgbu/M6NjwIDAQAB</string>
+    <string name="iab_sku_remove_ads">remove_ads</string>
+    <string name="iab_prefs">iabPrefs</string>
+    
+    <string name="map_image_button">&quot;Go Back&quot;</string>
+    
+    <string name="routeListTitle">PG Bus Routes</string>
+    <string name="actionMenu">Menu</string>
+    <string name="menuItemBasicMap">View Basic Map</string>
+    <string name="menuItemMore">Settings/More</string>
+    <string name="menuChangeDayTitle">Change Day</string>
+    <string name="mapTitle">PG Transit Map</string>
+    <string name="mapDrawerButton">Select Routes</string>
+    
+    <!-- More view -->
+    <string name="more_about_header">About</string>
+    <string name="more_about_text">About the PG Transit app</string>
+    <string name="more_about_dialog">Bus routes and schedules in this product or service are effective from July 2 2014 to Sep 1 2014. This application assumes no responsibility for the accuracy of data. \u00A9 2014 Daniel Finke. Images and partial design courtesy and \u00A9 2012&#8211;2013 Xinyi Zhuang, UNBC Artificial and Intelligence lab.</string>
+    <string name="more_share_header">Invite to PG Transit</string>
+    <string name="more_share_body">Hey! You should check out this awesome transit app for Android:\n</string>
+    <string name="more_share_sms">Share by Text Message</string>
+    <string name="more_share_fb">Share by Facebook</string>
+    <string name="more_share_tw">Tweet PG Transit</string>
+    <string name="more_share_email">Share by E-Mail</string>
+    <string name="more_iab_header">Premium</string>
+    <string name="more_iab_GPS_not_installed">Google Play Services must be installed on your device to access paid features.</string>
+    <string name="more_iab_ads">Remove ads ($1.29)</string>
+    <string name="more_iab_restore">Restore purchases</string>
+    <string name="more_feedback_header">Feedback</string>
+    <string name="more_feedback_rate">Rate this app</string>
+    <string name="more_feedback_bugs">Report bugs</string>
+
+</resources>

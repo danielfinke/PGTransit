@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menuDisclosure"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/actionMenu"
+        android:icon="@drawable/ic_action_overflow" >
+        <menu>
+            <item android:id="@+id/viewBasicMap" android:title="@string/menuItemBasicMap"/>
+            <item android:id="@+id/viewMore" android:title="@string/menuItemMore"/>
+        </menu>
+    </item>
+
+</menu>

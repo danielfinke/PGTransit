@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/moreScrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#d1d0ce" >
+        
+    <LinearLayout
+        android:id="@+id/moreContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:clickable="true" >
+        
+        <TextView
+            android:id="@+id/aboutTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="14dp"
+            android:text="@string/more_about_header"
+            android:textSize="18sp" />
+        
+        <LinearLayout
+            android:id="@+id/aboutLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:background="@android:drawable/list_selector_background" >
+
+            <ImageView
+                android:id="@+id/aboutImageView"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:maxWidth="60dp"
+                android:src="@drawable/ic_launcher"
+                android:contentDescription="@string/more_about_text" />
+
+            <TextView
+                android:id="@+id/aboutTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_about_text"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/shareTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="14dp"
+            android:text="@string/more_share_header"
+            android:textSize="18sp" />
+
+        <LinearLayout
+            android:id="@+id/smsShareLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:background="@android:drawable/list_selector_background" >
+
+            <ImageView
+                android:id="@+id/imageView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:maxWidth="60dp"
+                android:src="@drawable/sms"
+                android:contentDescription="@string/more_share_sms" />
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_share_sms"
+                android:textSize="24sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/fbShareLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:drawable/list_selector_background">
+
+            <ImageView
+                android:id="@+id/ImageView01"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:maxWidth="60dp"
+                android:src="@drawable/facebook"
+                android:contentDescription="@string/more_share_fb" />
+
+            <TextView
+                android:id="@+id/TextView01"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_share_fb"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/tweetShareLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:drawable/list_selector_background" >
+
+            <ImageView
+                android:id="@+id/ImageView02"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:maxWidth="60dp"
+                android:src="@drawable/twitter"
+                android:contentDescription="@string/more_share_tw" />
+
+            <TextView
+                android:id="@+id/TextView02"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_share_tw"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/emailShareLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:drawable/list_selector_background" >
+
+            <ImageView
+                android:id="@+id/ImageView03"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:maxWidth="60dp"
+                android:src="@drawable/email"
+                android:contentDescription="@string/more_share_email" />
+
+            <TextView
+                android:id="@+id/TextView03"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_share_email"
+                android:textSize="24sp" />
+        </LinearLayout>
+        
+        <TextView
+            android:id="@+id/more_iab_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="14dp"
+            android:text="@string/more_iab_header"
+            android:textSize="18sp" />
+        
+        <TextView
+            android:id="@+id/more_iab_notice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:text="@string/more_iab_GPS_not_installed"
+            android:textSize="18sp" />
+        
+        <LinearLayout
+            android:id="@+id/iabRemoveAdsLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:drawable/list_selector_background" >
+
+            <ImageView
+                android:id="@+id/ImageView05"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/more_iab_ads"
+                android:maxWidth="60dp"
+                android:src="@drawable/cart" />
+
+            <TextView
+                android:id="@+id/TextView06"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_iab_ads"
+                android:textSize="24sp" />
+        </LinearLayout>
+        
+        <LinearLayout
+            android:id="@+id/iabRestorePurchasesLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:drawable/list_selector_background" >
+
+            <ImageView
+                android:id="@+id/ImageView06"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/more_feedback_bugs"
+                android:maxWidth="60dp"
+                android:src="@drawable/refresh" />
+
+            <TextView
+                android:id="@+id/TextView08"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_iab_restore"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/TextView04"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="14dp"
+            android:text="@string/more_feedback_header"
+            android:textSize="18sp" />
+
+        <LinearLayout
+            android:id="@+id/rateAppLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:drawable/list_selector_background" >
+
+            <ImageView
+                android:id="@+id/ImageView04"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:maxWidth="60dp"
+                android:src="@drawable/rate"
+                android:contentDescription="@string/more_feedback_rate" />
+
+            <TextView
+                android:id="@+id/TextView05"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_feedback_rate"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/reportBugsLinearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="14dp"
+            android:layout_marginLeft="14dp"
+            android:layout_marginRight="14dp"
+            android:layout_marginTop="2dp"
+            android:background="@android:drawable/list_selector_background" >
+
+            <ImageView
+                android:id="@+id/ImageView07"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginTop="6dp"
+                android:adjustViewBounds="true"
+                android:maxWidth="60dp"
+                android:src="@drawable/bug"
+                android:contentDescription="@string/more_feedback_bugs" />
+
+            <TextView
+                android:id="@+id/TextView09"
+                android:layout_width="wrap_content"
+                android:layout_height="60dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:text="@string/more_feedback_bugs"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
