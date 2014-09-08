@@ -191,6 +191,7 @@ public class MapFragment extends SherlockFragment implements
 	
 	private void loadRoutes() {
 		mAdapter = new RoutesAdapter(getActivity());
+		mAdapter.setColor("#ffffff");
 		ListView drawerList = (ListView)getActivity().findViewById(R.id.routesDrawer);
 		drawerList.setAdapter(mAdapter);
 		drawerList.setOnItemClickListener(this);

@@ -13,7 +13,7 @@ import com.finke.pgtransit.model.Stop;
 
 public class BusDatabaseHelper extends DataBaseHelper {
 
-	private static final int DATABASE_VERSION = 4;
+	private static final int DATABASE_VERSION = 5;
     private static BusDatabaseHelper instance;
     
     public static BusDatabaseHelper getInstance() throws Exception {
