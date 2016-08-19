@@ -71,6 +71,10 @@ public class RoutesFragment extends SherlockListFragment
 		mScrollOffset = state.getInt("scrollOffset");
 	}
 	
+	public boolean onBackPressed() {
+		return false;
+	}
+	
 	private void setupActionBar() {
 		ActionBar actionBar = ((SherlockFragmentActivity)getActivity()).getSupportActionBar();
 		actionBar.setTitle(R.string.routeListTitle);

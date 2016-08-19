@@ -6,6 +6,7 @@ import java.util.List;
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -56,27 +57,17 @@ public class RoutesAdapter extends BaseAdapter {
 	public View getView(int index, View reusable, ViewGroup parent) {
 		reusable = inflater.inflate(R.layout.row_routes, parent, false);
 	    ImageView icon = (ImageView)reusable.findViewById(R.id.imageView1);
+	    TextView circleNumber = (TextView)reusable.findViewById(R.id.circle_number);
 	    TextView name = (TextView)reusable.findViewById(R.id.name);
 	    TextView desc = (TextView)reusable.findViewById(R.id.description);
 	    
 	    Bus bus = getBus(index);
 	    
-	    // Only change icon if it has one
-    	if(bus.getIcon() != null) {
-    		try {
-    			icon.setImageDrawable(reusable.getResources().getDrawable(reusable.getResources().getIdentifier("drawable/" + bus.getIcon(), "drawable", reusable.getContext().getPackageName())));
-    		}
-    		catch(NotFoundException ex) {
-    			Log.w(null, "No icon for route");
-    			((ViewGroup)reusable).removeView(icon);
-    		}
-    	}
-    	else {
-    		((ViewGroup)reusable).removeView(icon);
-    	}
+	    ((GradientDrawable)icon.getDrawable()).setColor(bus.getColor());
     	
-    	name.setText(bus.getOwner());
-    	desc.setText(bus.getDescription());
+	    circleNumber.setText(Integer.toString(bus.getNumber()));
+    	name.setText(Integer.toString(bus.getNumber()) + " " + bus.getName());
+    	desc.setText(bus.getDirectionName());
     	
     	if(mBgColorSet) {
     		reusable.setBackgroundColor(mBgColor);

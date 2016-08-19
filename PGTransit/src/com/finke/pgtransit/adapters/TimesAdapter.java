@@ -18,21 +18,20 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.finke.pgtransit.R;
-import com.finke.pgtransit.model.TimeSlot;
-import com.finke.pgtransit.model.TripNote;
+import com.finke.pgtransit.model.TimeInterface;
 
 /* Creates time slot rows given list of TimeSlots,
  * used both on the time list and for popup dialogs when clicking map pins
  */
 public class TimesAdapter extends BaseAdapter {
 	
-	private List<TimeSlot> slots;
+	private List<TimeInterface> times;
 	private LayoutInflater inflater;
 
 	public TimesAdapter(Context context) {
 		super();
 
-		slots = new ArrayList<TimeSlot>();
+		times = new ArrayList<TimeInterface>();
 		inflater = LayoutInflater.from(context);
 	}
 	
@@ -60,20 +59,20 @@ public class TimesAdapter extends BaseAdapter {
 
 	@Override
 	public int getCount() {
-		return slots.size();
+		return times.size();
 	}
 
 	@Override
 	public Object getItem(int index) {
-		return slots.get(index);
+		return times.get(index);
 	}
-	public TimeSlot getTimeSlot(int index) {
-		return (TimeSlot)getItem(index);
+	public TimeInterface getTimeSlot(int index) {
+		return (TimeInterface)getItem(index);
 	}
 
 	@Override
 	public long getItemId(int index) {
-		return ((TimeSlot)slots.get(index)).getId();
+		return ((TimeInterface)times.get(index)).getId();
 	}
 
 	@Override
@@ -84,44 +83,56 @@ public class TimesAdapter extends BaseAdapter {
 		
 		styleDefault(reusable);
 
-		TimeSlot slot = slots.get(index);
+		TimeInterface slot = times.get(index);
 		Calendar time = slot.getCalendarTime();
-		// Decrease minute by 1 to fix the style not being
-		// applied when it is exactly a certain time
-		time.roll(Calendar.MINUTE, false);
+		int hour = time.get(Calendar.HOUR_OF_DAY);
+		int min = time.get(Calendar.MINUTE);
+		Calendar curTime = Calendar.getInstance();
+		int curH = curTime.get(Calendar.HOUR_OF_DAY);
+		int curM = curTime.get(Calendar.MINUTE);
+//		// Decrease minute by 1 to fix the style not being
+//		// applied when it is exactly a certain time
+//		if(time.get(Calendar.MINUTE) == 0) {
+//			time.roll(Calendar.HOUR_OF_DAY, false);
+//		}
+//		time.roll(Calendar.MINUTE, false);
 		// Check if the very first one is up next
 		if(index == 0) {
-			if(time.after(Calendar.getInstance())) {
+//			if(time.after(Calendar.getInstance())) {
+//				styleNext(reusable);
+//			}
+			if(hour > curH || hour == curH && min >= curM) {
 				styleNext(reusable);
 			}
 		}
 		// Now check subsequent time slots
 		else if(index > 0) {
 			Calendar time2 = getTimeSlot(index-1).getCalendarTime();
-			if(time2.before(Calendar.getInstance()) && time.after(Calendar.getInstance())) {
+			int lastH = time2.get(Calendar.HOUR_OF_DAY);
+			int lastM = time2.get(Calendar.MINUTE);
+			
+			if((lastH < curH || lastH == curH && lastM < curM) &&
+					(hour > curH || hour == curH && min >= curM)) {
 				styleNext(reusable);
 			}
-			// Some times roll over to the next day, so need to check that as well
-			if(slot.hasNextDayFlag()) {
-				Calendar cal = Calendar.getInstance();
-				cal.add(Calendar.DAY_OF_MONTH, 1);
-				// Last condition: the current row would have a time
-				// earlier than now
-				if(time2.before(cal) && time.after(cal)) {
-					styleNext(reusable);
-				}
-			}
+//			if(time2.before(Calendar.getInstance()) && time.after(Calendar.getInstance())) {
+//				styleNext(reusable);
+//			}
 		}
     	
+		// Undo the style fix
+//		if(time.get(Calendar.MINUTE) == 59) {
+//			time.roll(Calendar.HOUR_OF_DAY, true);
+//		}
+//		time.roll(Calendar.MINUTE, true);
     	timeView.setText(new SimpleDateFormat("h:mm a", Locale.US).format(time.getTime()));
-    	List<TripNote> notes = slot.getNotes();
     	
     	// Remove the views until they are needed
     	((RelativeLayout)reusable).removeView(reusable.findViewById(R.id.notesHeading));
 		((RelativeLayout)reusable).removeView(reusable.findViewById(R.id.notes));
 		
 		// No notes = hide notes button
-		if(notes.size() == 0) {
+		if(slot.getNoteCode() == null) {
 			noteBtn.setVisibility(View.GONE);
 		}
 		else {
@@ -129,12 +140,12 @@ public class TimesAdapter extends BaseAdapter {
     		noteBtn.setTag(index);
     		// Displays notes button differently depending on whether
     		// there is 1 or more notes for this time slot
-    		if(notes.size() == 1) {
-    			noteBtn.setText("Note: " + notes.get(0).getName());
-    		}
-        	else if(notes.size() > 1) {
-        		noteBtn.setText("Notes");
-        	}
+//    		if(notes.size() == 1) {
+    			noteBtn.setText("Note: " + slot.getNoteCode());
+//    		}
+//        	else if(notes.size() > 1) {
+//        		noteBtn.setText("Notes");
+//        	}
 			
     		// Handle clicks on the Note buttons
     		noteBtn.setOnClickListener(new OnClickListener() {
@@ -154,7 +165,7 @@ public class TimesAdapter extends BaseAdapter {
 						parent.addView(notesH);
 						parent.addView(notes);
 						// Fetching the data using earlier preserved time slot id
-						notes.setText(slots.get((Integer)v.getTag()).getNotes().get(0).getDescription());
+						notes.setText(times.get((Integer)v.getTag()).getNote());
 					}
 					// Collapse
 					else {
@@ -168,7 +179,7 @@ public class TimesAdapter extends BaseAdapter {
     	return reusable;
 	}
 	
-	public void setSlots(List<TimeSlot> data) {
-		slots = data;
+	public void setTimes(List<TimeInterface> data) {
+		times = data;
 	}
 }

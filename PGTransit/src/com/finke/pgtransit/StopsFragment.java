@@ -3,6 +3,7 @@ package com.finke.pgtransit;
 import java.util.List;
 
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -14,6 +15,10 @@ import android.widget.ListView;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.app.SherlockListFragment;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
+import com.finke.pgtransit.ChangeDayDialogFragment.ChangeDayDialogListener;
 import com.finke.pgtransit.adapters.StopsAdapter;
 import com.finke.pgtransit.extensions.Stackable;
 import com.finke.pgtransit.model.Bus;
@@ -21,19 +26,26 @@ import com.finke.pgtransit.model.Stop;
 
 /* Displays a list of stops for a bus route */
 public class StopsFragment extends SherlockListFragment implements Stackable, 
-	LoaderManager.LoaderCallbacks<List<Stop>> {
+	LoaderManager.LoaderCallbacks<List<Stop>>, ChangeDayDialogListener {
 	
 	// Preserves scroll position through StackController
 	private int mScrollIndex;
 	private int mScrollOffset;
 	// Selected bus model, whose stops are being shown
 	private Bus mBus;
+	// The weekday for which arrival times are being shown
+	private String mWeekday;
 	private StopsAdapter mAdapter;
+	// Instance of dialog for changing currently viewed weekday times
+	private ChangeDayDialogFragment mChgDayDialog;
 	
 	public StopsFragment() {
 		mScrollIndex = 0;
 		mScrollOffset = 0;
 		mBus = null;
+		// On view, the current weekday/period is chosen
+		mWeekday = Utils.getCurrentWeekday();
+		mChgDayDialog = null;
 	}
 	
 	public void onCreate(Bundle state) {
@@ -61,6 +73,7 @@ public class StopsFragment extends SherlockListFragment implements Stackable,
 		state.putInt("scrollIndex", getListView().getFirstVisiblePosition());
 		state.putInt("scrollOffset", getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop());
 		state.putInt("bus", mBus.getId());
+		state.putString("weekday", mWeekday);
 	}
 	
 	// StackController will request state restores
@@ -68,11 +81,16 @@ public class StopsFragment extends SherlockListFragment implements Stackable,
 	public void restoreState(Bundle state) {
 		mScrollIndex = state.getInt("scrollIndex");
 		mScrollOffset = state.getInt("scrollOffset");
+		mWeekday = state.getString("weekday");
 		try {
 			mBus = Bus.fetchFromDatabase(state.getInt("bus"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public boolean onBackPressed() {
+		return false;
 	}
 	
 	// Set bus model whose stops will be displayed when pushing fragment
@@ -83,7 +101,7 @@ public class StopsFragment extends SherlockListFragment implements Stackable,
 	
 	private void setupActionBar() {
 		ActionBar actionBar = ((SherlockFragmentActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(mBus.getOwner());
+		actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
 		actionBar.setDisplayHomeAsUpEnabled(true);
 	}
 	
@@ -115,29 +133,26 @@ public class StopsFragment extends SherlockListFragment implements Stackable,
 	    }
 	}*/
 	
-	/*@Override
+	@Override
 	public void onCreateOptionsMenu(
 	      Menu menu, MenuInflater inflater) {
-	   inflater.inflate(R.menu.route_detail, menu);
+	   inflater.inflate(R.menu.menu_times, menu);
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.action_detail_map:
-			if(isGooglePlayServicesInstalled() && isGoogleMapsInstalled()) {
-				Intent intent = new Intent(getActivity(), MapActivity.class);
-				intent.putExtra("title", title);
-				intent.putExtra("curRoute", curRoute);
-				startActivity(intent);
-				break;
-			}
-			else {
-				Toast.makeText(getActivity(), "You must have both Google Play Services and Google Maps installed to use this feature.", Toast.LENGTH_LONG).show();
-			}
+		// Opens the dialog for changing viewed day of week
+		case R.id.changeDayMenuItem:
+			mChgDayDialog = new ChangeDayDialogFragment();
+			mChgDayDialog.setWeekday(mWeekday);
+			// Makes the dialog handler this
+			mChgDayDialog.setListener(this);
+			mChgDayDialog.show(getFragmentManager(), null);
+			break;
 		}
 		return super.onOptionsItemSelected(item);
-	}*/
+	}
 
 	// Fetches from SQLite database in separate thread
 	@Override
@@ -145,7 +160,7 @@ public class StopsFragment extends SherlockListFragment implements Stackable,
 		return new AsyncTaskLoader<List<Stop>>(getActivity()) {
 			public List<Stop> loadInBackground() {
 				try {
-					return Stop.fetchFromDatabase(mBus.getId());
+					return Stop.fetchFromDatabase(mBus.getId(), mWeekday);
 				} catch (Exception e) {
 					e.printStackTrace();
 					return null;
@@ -163,12 +178,24 @@ public class StopsFragment extends SherlockListFragment implements Stackable,
 		}
 		// Restores scroll position if state was restored
 		// and had triggered a data load
+		ActionBar actionBar = ((SherlockFragmentActivity)getActivity()).getSupportActionBar();
+		actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
 		getListView().setSelectionFromTop(mScrollIndex, mScrollOffset);
 	}
 
 	@Override
 	public void onLoaderReset(Loader<List<Stop>> loader) {
 		mAdapter.notifyDataSetInvalidated();
+	}
+
+	// Changes the viewed day, so time slots are fetched for another
+	public void onDialogPositiveClick(DialogFragment dialog) {
+		mWeekday = ((ChangeDayDialogFragment)dialog).getWeekday();
+		getLoaderManager().restartLoader(0, null, this).forceLoad();
+	}
+
+	public void onDialogNegativeClick(DialogFragment dialog) {
+		// Do nothing
 	}
 	
 	public void onListItemClick(ListView i, View v, int position, long id) {
@@ -181,6 +208,7 @@ public class StopsFragment extends SherlockListFragment implements Stackable,
 		// chosen stop
 		TimesFragment frag = new TimesFragment();
 		frag.setStop(mAdapter.getStop(position));
+		frag.setWeekday(mWeekday);
 		((MainActivity)getActivity()).getStackController().push(frag);
 	}
 

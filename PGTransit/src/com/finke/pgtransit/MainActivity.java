@@ -255,7 +255,10 @@ public class MainActivity extends SherlockFragmentActivity
 	 * items have been popped, and then kills app instead
 	 */
 	public void onBackPressed() {
-		if(mSc.getStackCount() > 1) {
+		if(mSc.onBackPressed()) {
+			return;
+		}
+		else if(mSc.getStackCount() > 1) {
 			mSc.pop();
 		}
 		else {

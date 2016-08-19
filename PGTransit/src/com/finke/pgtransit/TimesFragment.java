@@ -1,6 +1,5 @@
 package com.finke.pgtransit;
 
-import java.util.Calendar;
 import java.util.List;
 
 import android.os.Bundle;
@@ -8,7 +7,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,20 +14,18 @@ import android.view.ViewGroup;
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.app.SherlockListFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
 import com.finke.pgtransit.ChangeDayDialogFragment.ChangeDayDialogListener;
 import com.finke.pgtransit.adapters.TimesAdapter;
 import com.finke.pgtransit.extensions.Stackable;
 import com.finke.pgtransit.model.Stop;
+import com.finke.pgtransit.model.TimeInterface;
 import com.finke.pgtransit.model.TimeSlot;
 
 /* Displays a list of times given a bus stop location, as well as
  * any important notes on the time slot
  */
 public class TimesFragment extends SherlockListFragment
-	implements Stackable, LoaderManager.LoaderCallbacks<List<TimeSlot>>,
+	implements Stackable, LoaderManager.LoaderCallbacks<List<TimeInterface>>,
 	ChangeDayDialogListener {
 	
 	// Preserves scroll position through StackController
@@ -47,7 +43,7 @@ public class TimesFragment extends SherlockListFragment
 		mScrollIndex = 0;
 		mScrollOffset = 0;
 		// On view, the current weekday/period is chosen
-		mWeekday = getCurrentWeekday();
+		mWeekday = Utils.getCurrentWeekday();
 		mStop = null;
 		mChgDayDialog = null;
 	}
@@ -99,62 +95,16 @@ public class TimesFragment extends SherlockListFragment
 		}
 	}
 	
-	/* Gets current Calendar week day based on today's weekday
-	 */
-	private static String getCurrentWeekday() {
-		int weekdayNo = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-		
-		if(weekdayNo == Calendar.SATURDAY) {
-			return "saturday";
-		}
-		else if(weekdayNo == Calendar.SUNDAY) {
-			return "sunday";
-		}
-		else {
-			return "weekdays";
-		}
-	}
-
-	/* Gets current weekday option based on mWeekdays
-	 * All weekdays are bundled together since schedule is consistent
-	 */
-	private String getWeekdayString() {
-		if(mWeekday.equals("saturday")) {
-			return "Saturday";
-		}
-		else if(mWeekday.equals("sunday")) {
-			return "Sunday";
-		}
-
-		if(!isWeekend()) {
-			SparseArray<String> days = new SparseArray<String>();
-			days.put(Calendar.SUNDAY, "Sunday");
-			days.put(Calendar.MONDAY, "Monday");
-			days.put(Calendar.TUESDAY, "Tuesday");
-			days.put(Calendar.WEDNESDAY, "Wednesday");
-			days.put(Calendar.THURSDAY, "Thursday");
-			days.put(Calendar.FRIDAY, "Friday");
-			days.put(Calendar.SATURDAY, "Saturday");
-			
-			return days.get(Calendar.getInstance().get(Calendar.DAY_OF_WEEK));
-		}
-		else {
-			return "Weekdays";
-		}
+	public boolean onBackPressed() {
+		return false;
 	}
 	
 	public void setStop(Stop s) { mStop = s; }
-	
-	/* Returns true if today is a weekend */
-	private static boolean isWeekend() {
-		int weekdayNo = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
-		
-		return weekdayNo == Calendar.SATURDAY || weekdayNo == Calendar.SUNDAY;
-	}
+	public void setWeekday(String weekday) { mWeekday = weekday; }
 	
 	private void setupActionBar() {
 		ActionBar actionBar = ((SherlockFragmentActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(mStop.getName());
+		actionBar.setTitle(Utils.getWeekdayString(mWeekday) + " Schedule");
 		actionBar.setDisplayHomeAsUpEnabled(true);
 	}
 	
@@ -170,34 +120,34 @@ public class TimesFragment extends SherlockListFragment
 		getLoaderManager().restartLoader(0, null, this).forceLoad();
 	}
 	
-	@Override
-	public void onCreateOptionsMenu(
-	      Menu menu, MenuInflater inflater) {
-	   inflater.inflate(R.menu.menu_times, menu);
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		// Opens the dialog for changing viewed day of week
-		case R.id.changeDayMenuItem:
-			mChgDayDialog = new ChangeDayDialogFragment();
-			mChgDayDialog.setWeekday(mWeekday);
-			// Makes the dialog handler this
-			mChgDayDialog.setParentFragment(this);
-			mChgDayDialog.show(getFragmentManager(), null);
-			break;
-		}
-		return super.onOptionsItemSelected(item);
-	}
+//	@Override
+//	public void onCreateOptionsMenu(
+//	      Menu menu, MenuInflater inflater) {
+//	   inflater.inflate(R.menu.menu_times, menu);
+//	}
+//	
+//	@Override
+//	public boolean onOptionsItemSelected(MenuItem item) {
+//		switch (item.getItemId()) {
+//		// Opens the dialog for changing viewed day of week
+//		case R.id.changeDayMenuItem:
+//			mChgDayDialog = new ChangeDayDialogFragment();
+//			mChgDayDialog.setWeekday(mWeekday);
+//			// Makes the dialog handler this
+//			mChgDayDialog.setListener(this);
+//			mChgDayDialog.show(getFragmentManager(), null);
+//			break;
+//		}
+//		return super.onOptionsItemSelected(item);
+//	}
 
 	// Fetches from SQLite database in separate thread
 	@Override
-	public AsyncTaskLoader<List<TimeSlot>> onCreateLoader(int arg0, Bundle arg1) {
-		return new AsyncTaskLoader<List<TimeSlot>>(getActivity()) {
-			public List<TimeSlot> loadInBackground() {
+	public AsyncTaskLoader<List<TimeInterface>> onCreateLoader(int arg0, Bundle arg1) {
+		return new AsyncTaskLoader<List<TimeInterface>>(getActivity()) {
+			public List<TimeInterface> loadInBackground() {
 				try {
-					return TimeSlot.fetchFromDatabase(mStop.getId(), mWeekday);
+					return TimeSlot.fetchFromDatabase(mStop.getId());
 				} catch (Exception e) {
 					e.printStackTrace();
 					return null;
@@ -208,21 +158,22 @@ public class TimesFragment extends SherlockListFragment
 
 	// Updates the ListView after database has returned results
 	@Override
-	public void onLoadFinished(Loader<List<TimeSlot>> loader, List<TimeSlot> result) {
+	public void onLoadFinished(Loader<List<TimeInterface>> loader, List<TimeInterface> result) {
 		if(result != null) {
-			mAdapter.setSlots(result);
+			mAdapter.setTimes(result);
 			mAdapter.notifyDataSetChanged();
 		}
 		// Restores scroll position if state was restored
 		// and had triggered a data load, also updating
 		// the title of the activity (by day)
 		ActionBar actionBar = ((SherlockFragmentActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(getWeekdayString() + " Schedule");
+		actionBar.setTitle(mStop.getBus().getNumber() + " at " +
+				mStop.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
 		getListView().setSelectionFromTop(mScrollIndex, mScrollOffset);
 	}
 
 	@Override
-	public void onLoaderReset(Loader<List<TimeSlot>> arg0) {
+	public void onLoaderReset(Loader<List<TimeInterface>> arg0) {
 		mAdapter.notifyDataSetInvalidated();
 	}
 

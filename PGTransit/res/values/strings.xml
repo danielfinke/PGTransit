@@ -6,17 +6,10 @@
     <string name="app_bundle">com.finke.pgtransit</string>
     <string name="dev_email">danielfinke2011@gmail.com</string>
     
-    <string name="app_id">1381156768791196</string>
     
     <!-- Advertising -->
-    <string name="test_device_1">8028BE022833A173EBAE5B0D0C5531BB</string>
-    <string name="ad_unit_id">ca-app-pub-6777698423247584/9485247808</string>
     
     <!-- In-app Billing -->
-    <string name="iab_part_1">MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArXVuXKYFNexhGXeniFXxoQagcZMa5Ix4VczxVhMNbKxQzhgHOes6Plutie29DCMKOjrwqxkNgyOiD3</string>
-    <string name="iab_part_2">1TBjq7y1KYpLO8oQwhKT0DqxEcoeoPD0mDs3UAwmmG/nvzNs4yhJHAkyRW1h85aOq7r10+jOLR16h7wiTP+CHK6RqgQKbJxEA/oUApqaEUGdrhCMbDhkUlD96V</string>
-    <string name="iab_part_3">GCwW1vQD0vQJenYoUFk/LcYpX2tjy25zyCX8hBleKo7oyA2pG3FGq7LHakC+CsOELXWaK0qsSOqdpunXwO+uc4H9QhkPM/rPUTYWuBE0go92znlgqystkndAk1</string>
-    <string name="iab_part_4">aDDuch2e2xsgbu/M6NjwIDAQAB</string>
     <string name="iab_sku_remove_ads">remove_ads</string>
     <string name="iab_prefs">iabPrefs</string>
     
@@ -29,6 +22,12 @@
     <string name="menuChangeDayTitle">Change Day</string>
     <string name="mapTitle">PG Transit Map</string>
     <string name="mapDrawerButton">Select Routes</string>
+    <string name="no_routes">No Routes</string>
+    <string name="route_not_operating">The selected route does not operate on</string>
+    
+    <string name="estimated_arrival_text">Estimated Arrival:</string>
+    <string name="estimated_departure_text">Estimated Departure:</string>
+    <string name="tap_for_more_times_text">Tap popup for more times</string>
     
     <!-- More view -->
     <string name="more_about_header">About</string>
@@ -47,5 +46,12 @@
     <string name="more_feedback_header">Feedback</string>
     <string name="more_feedback_rate">Rate this app</string>
     <string name="more_feedback_bugs">Report bugs</string>
+    
+    <!-- Placeholders for XML -->
+    <string name="circle_placeholder">15</string>
+    <string name="circle_content_desc">Route Icon</string>
+    <string name="minor_stop_name_placeholder">Southbound N Ospika at McIntyre</string>
+    <string name="estimated_arrival_value_placeholder">8:58 PM</string>
+    <string name="estimated_departure_value_placeholder">9:01 PM</string>
 
 </resources>

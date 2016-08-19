@@ -17,12 +17,10 @@ public class ChangeDayDialogFragment extends SherlockDialogFragment {
 	private String mWeekday;
     // Use this instance of the interface to deliver action events
     ChangeDayDialogListener mListener;
-    TimesFragment mParent;
     
     public ChangeDayDialogFragment() {
     	mWeekday = null;
     	mListener = null;
-    	mParent = null;
     }
 	
 	@Override
@@ -38,13 +36,13 @@ public class ChangeDayDialogFragment extends SherlockDialogFragment {
 				public void onClick(DialogInterface dialog, int which) {
 					switch(which) {
 					case 0:
-						mWeekday = "weekdays";
+						mWeekday = "Weekday";
 						break;
 					case 1:
-						mWeekday = "saturday";
+						mWeekday = "Saturday";
 						break;
 					case 2:
-						mWeekday = "sunday";
+						mWeekday = "Sunday";
 						break;
 					}
 					// Listener is expected to be the TimesFragment for
@@ -63,13 +61,11 @@ public class ChangeDayDialogFragment extends SherlockDialogFragment {
 		mWeekday = selectedDay;
 	}
 	// Make this dialog aware of its listener
-	public void setParentFragment(TimesFragment frag) {
-		mParent = frag;
-		mListener = (ChangeDayDialogListener)mParent;
+	public void setListener(ChangeDayDialogListener listener) {
+		mListener = listener;
 	}
 	
 	public String getWeekday() { return mWeekday; }
-	public TimesFragment getParentTimesFragment() { return mParent; }
 	
 	/* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.

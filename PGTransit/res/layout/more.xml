@@ -84,7 +84,7 @@
                 android:contentDescription="@string/more_share_sms" />
 
             <TextView
-                android:id="@+id/textView1"
+                android:id="@+id/estimated_arrival"
                 android:layout_width="wrap_content"
                 android:layout_height="60dp"
                 android:layout_marginLeft="10dp"

@@ -9,4 +9,5 @@ import android.os.Bundle;
 public interface Stackable {
 	public void saveState(Bundle state);
 	public void restoreState(Bundle state);
+	public boolean onBackPressed();
 }

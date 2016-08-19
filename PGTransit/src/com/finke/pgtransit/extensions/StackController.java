@@ -197,6 +197,12 @@ public class StackController {
 		restoreStateInMemory(selStack.get(selStack.size()-1), mStackNo + "|" + (selStack.size()-1));
 	}
 	
+	public boolean onBackPressed() {
+		ArrayList<Stackable> stack = mBackStacks.get(mStackNo);
+		Stackable frag = stack.get(stack.size()-1);
+		return frag.onBackPressed();
+	}
+	
 	/* Similar to a push, adds the top stack item to the view container
 	 * but without animation
 	 */

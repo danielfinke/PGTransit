@@ -15,20 +15,17 @@ public class Stop {
 	private int mBusId;
 	// Stop location name
 	private String mName;
-	// Location of stop
-	private double mLat;
-	private double mLon;
+	private String mDay;
 
 	private Bus mBus;
 	
-	public final static String[] COLUMNS = {"_id", "bus_id", "name", "latitude", "longitude"};
+	public final static String[] COLUMNS = {"_id", "bus_id", "name", "day"};
 	
-	public Stop(String id, int busId, String name, double lat, double lon) {
+	public Stop(String id, int busId, String name, String day) {
 		mId = id;
 		mBusId = busId;
 		mName = name;
-		mLat = lat;
-		mLon = lon;
+		mDay = day;
 	}
 	
 	public String getId() { return mId; }
@@ -46,12 +43,11 @@ public class Stop {
 		}
 	}
 	public String getName() { return mName; }
-	public double getLat() { return mLat; }
-	public double getLon() { return mLon; }
+	public String getDay() { return mDay; }
 	
 	/* Fetches all stops for a given bus (specified by PK) */
-	public static List<Stop> fetchFromDatabase(int routeId) throws Exception {
-		Cursor c = BusDatabaseHelper.getInstance().getStopsCursor(routeId);
+	public static List<Stop> fetchFromDatabase(int routeId, String weekday) throws Exception {
+		Cursor c = BusDatabaseHelper.getInstance().getStopsCursor(routeId, weekday);
 		c.moveToFirst();
 		
 		List<Stop> items = new ArrayList<Stop>();
@@ -60,8 +56,7 @@ public class Stop {
 					c.getString(c.getColumnIndex(COLUMNS[0])),
 					c.getInt(c.getColumnIndex(COLUMNS[1])),
 					c.getString(c.getColumnIndex(COLUMNS[2])),
-					c.getDouble(c.getColumnIndex(COLUMNS[3])),
-					c.getDouble(c.getColumnIndex(COLUMNS[4]))));
+					c.getString(c.getColumnIndex(COLUMNS[3]))));
 			c.moveToNext();
 		}
 		c.close();
@@ -78,8 +73,7 @@ public class Stop {
 				c.getString(c.getColumnIndex(COLUMNS[0])),
 				c.getInt(c.getColumnIndex(COLUMNS[1])),
 				c.getString(c.getColumnIndex(COLUMNS[2])),
-				c.getDouble(c.getColumnIndex(COLUMNS[3])),
-				c.getDouble(c.getColumnIndex(COLUMNS[4])));
+				c.getString(c.getColumnIndex(COLUMNS[3])));
 		
 		c.close();
 		return s;
@@ -88,11 +82,11 @@ public class Stop {
 	/* Fetches all stops (in a single list) that belong to any of
 	 * the busses specified in the parameter
 	 */
-	public static List<Stop> fetchFromDatabase(ArrayList<Integer> routeIds) throws Exception {
-		ArrayList<Stop> items = new ArrayList<Stop>();
-		for(int id : routeIds) {
-			items.addAll(fetchFromDatabase(id));
-		}
-		return items;
-	}
+//	public static List<Stop> fetchFromDatabase(ArrayList<Integer> routeIds) throws Exception {
+//		ArrayList<Stop> items = new ArrayList<Stop>();
+//		for(int id : routeIds) {
+//			items.addAll(fetchFromDatabase(id));
+//		}
+//		return items;
+//	}
 }

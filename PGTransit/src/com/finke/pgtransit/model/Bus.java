@@ -1,6 +1,7 @@
 package com.finke.pgtransit.model;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import android.database.Cursor;
@@ -14,23 +15,20 @@ import com.finke.pgtransit.database.BusDatabaseHelper;
 public class Bus {
 	
 	private int mId;
-	private String mOwner;
-	private String mOwnerNo;
-	private String mDescription;
-	private String mIcon;
+	private String mName;
+	private int mNumber;
+	private int mDirection;
+	private String mDirectionName;
 	private int mColor;
 	
-	// Lazy loaded relationships
-	private List<Map> mMaps;
-	
-	public final static String[] COLUMNS = {"_id", "owner", "owner_no", "direction", "icon", "color"};
+	public final static String[] COLUMNS = {"_id", "name", "number", "direction", "direction_name", "color"};
 
-	public Bus(int id, String owner, String ownerNo, String description, String icon, String color) {
+	public Bus(int id, String name, int number, int direction, String directionName, String color) {
 		mId = id;
-		mOwner = owner;
-		mOwnerNo = ownerNo;
-		mDescription = description;
-		mIcon = icon;
+		mName = name;
+		mNumber = number;
+		mDirection = direction;
+		mDirectionName = directionName;
 		// Default color black for bus icon/lines
 		if(color != null) {
 			mColor = Color.parseColor(color);
@@ -38,27 +36,46 @@ public class Bus {
 		else {
 			mColor = Color.BLACK;
 		}
-		mMaps = null;
 	}
 	
 	public int getId() { return mId; }
-	public String getOwner() { return mOwner; }
-	public String getOwnerNo() { return mOwnerNo; }
-	public String getDescription() { return mDescription; }
-	public String getIcon() { return mIcon; }
+	public String getName() { return mName; }
+	public int getNumber() { return mNumber; }
+	public int getDirection() { return mDirection; }
+	public String getDirectionName() { return mDirectionName; }
 	public int getColor() { return mColor; }
 	
-	/* Lazy loaded maps for this bus */
-	public List<Map> getMaps() {
-		if(mMaps == null) {
-			try {
-				mMaps = Map.fetchFromDatabase(mId);
-			} catch (Exception e) {
-				e.printStackTrace();
+	public Trip getNextTrip(String weekday) {
+		try {
+			Cursor c = BusDatabaseHelper.getInstance().getTripCursor(mId, weekday);
+
+			if(c.getCount() == 0) {
 				return null;
 			}
+			
+			c.moveToFirst();
+			
+			Calendar cal = Calendar.getInstance();
+			int mins = (cal.get(Calendar.HOUR_OF_DAY) * 60) + cal.get(Calendar.MINUTE);
+			int nextPos = 0;
+			
+			while(!c.isAfterLast()) {
+				if(c.getInt(c.getColumnIndex("min_arrival_time")) > mins) {
+					nextPos = c.getPosition();
+				}
+				c.moveToNext();
+			}
+			
+			c.moveToPosition(nextPos);
+			return new Trip(
+					c.getInt(c.getColumnIndex(Trip.COLUMNS[0])),
+					c.getInt(c.getColumnIndex(Trip.COLUMNS[1])),
+					c.getString(c.getColumnIndex(Trip.COLUMNS[2])));
 		}
-		return mMaps;
+		catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	/* Fetch all bus records from the db */
@@ -71,8 +88,8 @@ public class Bus {
 			items.add(new Bus(
 					c.getInt(c.getColumnIndex(COLUMNS[0])),
 					c.getString(c.getColumnIndex(COLUMNS[1])),
-					c.getString(c.getColumnIndex(COLUMNS[2])),
-					c.getString(c.getColumnIndex(COLUMNS[3])),
+					c.getInt(c.getColumnIndex(COLUMNS[2])),
+					c.getInt(c.getColumnIndex(COLUMNS[3])),
 					c.getString(c.getColumnIndex(COLUMNS[4])),
 					c.getString(c.getColumnIndex(COLUMNS[5]))));
 			c.moveToNext();
@@ -90,8 +107,8 @@ public class Bus {
 		return new Bus(
 				c.getInt(c.getColumnIndex(COLUMNS[0])),
 				c.getString(c.getColumnIndex(COLUMNS[1])),
-				c.getString(c.getColumnIndex(COLUMNS[2])),
-				c.getString(c.getColumnIndex(COLUMNS[3])),
+				c.getInt(c.getColumnIndex(COLUMNS[2])),
+				c.getInt(c.getColumnIndex(COLUMNS[3])),
 				c.getString(c.getColumnIndex(COLUMNS[4])),
 				c.getString(c.getColumnIndex(COLUMNS[5])));
 	}

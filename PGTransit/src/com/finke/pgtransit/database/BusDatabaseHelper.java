@@ -8,12 +8,14 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.finke.pgtransit.model.Bus;
-import com.finke.pgtransit.model.Map;
+import com.finke.pgtransit.model.MapPoint;
+import com.finke.pgtransit.model.MinorStop;
+import com.finke.pgtransit.model.MinorStopTime;
 import com.finke.pgtransit.model.Stop;
 
 public class BusDatabaseHelper extends DataBaseHelper {
 
-	private static final int DATABASE_VERSION = 5;
+	private static final int DATABASE_VERSION = 7;
     private static BusDatabaseHelper instance;
     
     public static BusDatabaseHelper getInstance() throws Exception {
@@ -59,27 +61,57 @@ public class BusDatabaseHelper extends DataBaseHelper {
 	}
 	
 	/* Following methods wrap db queries */
-	public Cursor getRoutesCursor() { return myDataBase.query("bus", Bus.COLUMNS, null, null, null, null, null); }
+	public Cursor getRoutesCursor() { return myDataBase.query("bus", Bus.COLUMNS, null, null, null,
+			null, "substr(number, 1, 1) ASC, number ASC"); }
 	public Cursor getRoutesCursor(int id) {
 		return myDataBase.query("bus", Bus.COLUMNS, "_id = ?", new String[] { Integer.toString(id) }, null, null, null);
 	}
-	public Cursor getStopsCursor(int routeId) {
-		return myDataBase.query("location", Stop.COLUMNS, "bus_id = ?", new String[] { Integer.toString(routeId) }, null, null, null);
+	public Cursor getStopsCursor(int routeId, String weekday) {
+		return myDataBase.query("major_stop", Stop.COLUMNS, "bus_id = ? AND day = ?",
+				new String[] { Integer.toString(routeId), weekday }, null, null, null);
 	}
 	public Cursor getStopCursor(String stopId) {
-		return myDataBase.query("location", Stop.COLUMNS, "_id = ?", new String[] { stopId }, null, null, null);
+		return myDataBase.query("major_stop", Stop.COLUMNS, "_id = ?", new String[] { stopId }, null, null, null);
 	}
-	public Cursor getTimesCursor(String stopId, String weekday) {
-		return myDataBase.rawQuery("SELECT _id, location_id, weekday, time, friday_flag, next_day_flag FROM time_slot " +
-				"WHERE location_id = ?" +
-				"AND weekday = ?", new String[] { stopId, weekday });
+	public Cursor getTimesCursor(String stopId) {
+		return myDataBase.rawQuery("SELECT _id, major_stop_id, time, note_code, note FROM major_stop_time " +
+				"WHERE major_stop_id = ? " +
+				"ORDER BY time ASC", new String[] { stopId });
 	}
-	public Cursor getTripNotesCursor(int timeSlotId) {
-		return myDataBase.rawQuery("SELECT _id, time_slot_id, name, description FROM trip_note " +
-			"WHERE time_slot_id = ?", new String[] { Integer.toString(timeSlotId) });
+	public Cursor getTripCursor(int busId, String weekday) {
+		return myDataBase.rawQuery("SELECT t._id as _id, t.bus_id as bus_id, t.day as day, MIN(mst.arrival_time) as min_arrival_time " +
+				"FROM trip t JOIN minor_stop_time mst ON t._id = mst.trip_id " +
+				"WHERE t.bus_id = ? AND t.day = ? " +
+				"GROUP BY t._id, t.bus_id, t.day " +
+				"ORDER BY min_arrival_time", new String[] { Integer.toString(busId), weekday });
 	}
-	public Cursor getMapsCursor(int routeId) {
-		return myDataBase.query("map", Map.COLUMNS, "bus_id = ?", new String[] { Integer.toString(routeId) }, null, null, null);
+	public Cursor getMapPointsCursor(int tripId) {
+		return myDataBase.query("map_points", MapPoint.COLUMNS, "trip_id = ?",
+				new String[] { Integer.toString(tripId) }, null, null, null);
+	}
+	public Cursor getMinorStopTimesCursor(int tripId) {
+		return myDataBase.query("minor_stop_time", MinorStopTime.COLUMNS, "trip_id = ?",
+				new String[] { Integer.toString(tripId) }, null, null, null);
+	}
+	public Cursor getMinorStopTimesCursorForMinorStop(int minorStopId, String weekday, int busId) {
+		return myDataBase.rawQuery("SELECT mst._id as _id, mst.trip_id as trip_id, " + 
+				"mst.minor_stop_id as minor_stop_id, mst.arrival_time as arrival_time, mst.departure_time as departure_time " +
+				"FROM minor_stop_time mst " +
+				"JOIN trip t on t._id = mst.trip_id " +
+				"WHERE mst.minor_stop_id = ? AND t.day = ? AND t.bus_id = ?",
+				new String[] { Integer.toString(minorStopId), weekday, Integer.toString(busId) });
+	}
+	public MinorStop getMinorStop(int minorStopId) {
+		Cursor c = myDataBase.query("minor_stop", MinorStop.COLUMNS, "_id = ?",
+				new String[] { Integer.toString(minorStopId) }, null, null, null);
+		c.moveToFirst();
+		MinorStop minorStop = new MinorStop(
+				c.getInt(c.getColumnIndex(MinorStop.COLUMNS[0])),
+				c.getString(c.getColumnIndex(MinorStop.COLUMNS[1])),
+				c.getDouble(c.getColumnIndex(MinorStop.COLUMNS[2])),
+				c.getDouble(c.getColumnIndex(MinorStop.COLUMNS[3])));
+		c.close();
+		return minorStop;
 	}
 	
 	// Checks for existence of the database
