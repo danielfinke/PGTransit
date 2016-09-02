@@ -121,7 +121,7 @@ public class RoutesFragment extends ListFragment
      */
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_MENU) {
-            View v = getActivity().findViewById(R.id.menuDisclosure);
+            View v = getActivity().findViewById(R.id.overflowMenu);
             v.performClick();
             return true;
         }
