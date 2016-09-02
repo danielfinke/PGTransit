@@ -104,14 +104,7 @@ public class MainActivity extends AppCompatActivity
 		
 		onFirstLaunch();
 	}
-	
-	protected void onStart() {
-		super.onStart();
-		
-		// StackController takes over back stack management
-		mSc.start();
-	}
-	
+
 	protected void onResume() {
 		super.onResume();
 
@@ -120,7 +113,20 @@ public class MainActivity extends AppCompatActivity
 			mAdManager.getNewAd();
 		}
 	}
-	
+
+    /**
+     * At onResume there is a chance that fragments still have saved state
+     * which will cause an error when performing fragment transactions.
+     * Instead, perform them here. This issue seems to occur in API 19
+     */
+	@Override
+	protected void onResumeFragments() {
+		super.onResumeFragments();
+
+		// StackController takes over back stack management
+		mSc.start();
+	}
+
 	protected void onPause() {
 		super.onPause();
 		
@@ -145,7 +151,7 @@ public class MainActivity extends AppCompatActivity
 		mSc.stop();
 		super.onSaveInstanceState(state);
 	}
-	
+
 	public AdManager getAdManager() { return mAdManager; }
 	public StackController getStackController() { return mSc; }
 	

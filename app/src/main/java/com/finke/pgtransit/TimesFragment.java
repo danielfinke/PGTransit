@@ -32,6 +32,9 @@ public class TimesFragment extends ListFragment
 	// Preserves scroll position through StackController
 	private int mScrollIndex;
 	private int mScrollOffset;
+	// True if content view has been created
+	// Prevents saving scroll position if not yet ready
+	private boolean mContentViewCreated;
 	// The weekday for which arrival times are being shown
 	private String mWeekday;
 	// Selected stop model, whose visit times are being shown
@@ -60,25 +63,35 @@ public class TimesFragment extends ListFragment
         Bundle savedInstanceState) {
         return inflater.inflate(R.layout.list_time, container, false);
     }
-	
+
+	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		
+		mContentViewCreated = true;
+
 		loadTimes();
 	}
-	
+
 	public void onResume() {
 		super.onResume();
 		
 		setupActionBar();
 	}
-	
+
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+		mContentViewCreated = false;
+	}
+
 	// StackController will tell Fragment to save state
 	// String weekday value is preserved
 	// Pseudo saves stop instance by storing its PK in the bundle
 	public void saveState(Bundle state) {
-		state.putInt("scrollIndex", getListView().getFirstVisiblePosition());
-		state.putInt("scrollOffset", getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop());
+		if(mContentViewCreated) {
+			state.putInt("scrollIndex", getListView().getFirstVisiblePosition());
+			state.putInt("scrollOffset", getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop());
+		}
 		state.putString("weekday", mWeekday);
 		state.putString("stop", mStop.getId());
 	}
