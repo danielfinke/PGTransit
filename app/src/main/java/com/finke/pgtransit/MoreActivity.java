@@ -65,6 +65,7 @@ public class MoreActivity extends AppCompatActivity {
 	};
 	// Helper for Google Billing
 	private IabHelper mHelper;
+    private boolean mHelperRegistered = true; // True if IabHelper registers successfully
 	// (arbitrary) request code for the purchase flow
     static final int RC_REQUEST = 10001;
 	
@@ -87,11 +88,7 @@ public class MoreActivity extends AppCompatActivity {
 		    
 		    mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
 	    	   public void onIabSetupFinished(IabResult result) {
-	    	      if (!result.isSuccess()) {
-	    	         // Oh noes, there was a problem.
-	    	         //Log.d(TAG, "Problem setting up In-app Billing: " + result);
-	    	      }            
-	    	         // Hooray, IAB is fully set up!  
+                   mHelperRegistered = result.isSuccess();
 	    	   }
 	    	});
 		}
@@ -380,7 +377,7 @@ public class MoreActivity extends AppCompatActivity {
 	    super.onDestroy();
 	    mUiHelper.onDestroy();
 	    
-	    if (mHelper != null) mHelper.dispose();
+	    if (mHelper != null && mHelperRegistered) mHelper.dispose();
 	    mHelper = null;
 	}
 	
