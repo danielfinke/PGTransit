@@ -32,7 +32,7 @@
     <!-- More view -->
     <string name="more_about_header">About</string>
     <string name="more_about_text">About the PG Transit app</string>
-    <string name="more_about_dialog">Bus routes and schedules in this product or service are effective from Sep 2 2014 to Jun 28 2015. This application assumes no responsibility for the accuracy of data. \u00A9 2014 Daniel Finke. Images and partial design courtesy and \u00A9 2012&#8211;2013 Xinyi Zhuang, UNBC Artificial and Intelligence lab. Thanks to Claire Schultz for assisting with schedules updates.</string>
+    <string name="more_about_dialog">Bus routes and schedules in this product or service are effective as of Sep 4 2016. This application assumes no responsibility for the accuracy of data. \u00A9 2016 Daniel Finke. Images and partial design courtesy and \u00A9 2012&#8211;2013 Xinyi Zhuang, UNBC Artificial and Intelligence lab.</string>
     <string name="more_share_header">Invite to PG Transit</string>
     <string name="more_share_body">Hey! You should check out this awesome transit app for Android:\n</string>
     <string name="more_share_sms">Share by Text Message</string>
