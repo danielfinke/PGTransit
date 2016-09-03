@@ -12,7 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.finke.pgtransit.R;
@@ -56,14 +56,15 @@ public class RoutesAdapter extends BaseAdapter {
 	@Override
 	public View getView(int index, View reusable, ViewGroup parent) {
 		reusable = inflater.inflate(R.layout.row_routes, parent, false);
-	    ImageView icon = (ImageView)reusable.findViewById(R.id.imageView1);
+        FrameLayout layout = (FrameLayout)reusable.findViewById(R.id.circle_frame_layout);
 	    TextView circleNumber = (TextView)reusable.findViewById(R.id.circle_number);
 	    TextView name = (TextView)reusable.findViewById(R.id.name);
 	    TextView desc = (TextView)reusable.findViewById(R.id.description);
 	    
 	    Bus bus = getBus(index);
-	    
-	    ((GradientDrawable)icon.getDrawable()).setColor(bus.getColor());
+
+	    GradientDrawable background = (GradientDrawable)layout.getBackground();
+        background.setColor(bus.getColor());
     	
 	    circleNumber.setText(Integer.toString(bus.getNumber()));
     	name.setText(Integer.toString(bus.getNumber()) + " " + bus.getName());
