@@ -9,8 +9,10 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.provider.Telephony;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -114,9 +116,16 @@ public class MoreActivity extends AppCompatActivity {
 			public void onClick(View arg0) {
 				String smsBody = getString(R.string.more_share_body)
 						+ getString(R.string.app_bundle_url);
-				Intent sendIntent = new Intent(Intent.ACTION_VIEW);
-				sendIntent.putExtra("sms_body", smsBody); 
-				sendIntent.setType("vnd.android-dir/mms-sms");
+                Intent sendIntent = new Intent(Intent.ACTION_VIEW);
+                sendIntent.setData(Uri.parse("smsto:"));
+                sendIntent.putExtra("sms_body", smsBody);
+
+                // In KitKat and beyond users can specify a default SMS app
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    String defaultSmsPackageName = Telephony.Sms.getDefaultSmsPackage(MoreActivity.this);
+                    sendIntent.setPackage(defaultSmsPackageName);
+                }
+
 				if(isCallable(sendIntent)) {
 					startActivity(sendIntent);
 				}
