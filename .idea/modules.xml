@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/PGTransit.iml" filepath="$PROJECT_DIR$/PGTransit.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/scaleimageviewandroid/scaleimageviewandroid.iml" filepath="$PROJECT_DIR$/scaleimageviewandroid/scaleimageviewandroid.iml" />
     </modules>
   </component>
 </project>
