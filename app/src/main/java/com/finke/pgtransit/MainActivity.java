@@ -1,12 +1,17 @@
 package com.finke.pgtransit;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
@@ -23,6 +28,7 @@ import com.finke.pgtransit.extensions.StackController;
  * Schedules and Maps tabs */
 public class MainActivity extends AppCompatActivity
 	implements ActionBar.TabListener {
+    private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
 	
 	private boolean mRestored;
 	// Container for Google AdMob advertisements
@@ -31,6 +37,9 @@ public class MainActivity extends AppCompatActivity
 	private RoutesFragment mListFrag;
 	// Right tab view container for MapFragment
 	private MapFragment mMapFrag;
+    // Used to automatically push map fragment after resume when location
+    // permission is accepted
+    private boolean mLocationPermissionAccepted = false;
 	
 	// Handles displaying banner ad in container
 	// And the interstitial for times list
@@ -125,6 +134,12 @@ public class MainActivity extends AppCompatActivity
 
 		// StackController takes over back stack management
 		mSc.start();
+
+        // Callback for location has told us to push the map now
+        if(mLocationPermissionAccepted) {
+            mSc.push(mMapFrag, 1);
+            mLocationPermissionAccepted = false;
+        }
 	}
 
 	protected void onPause() {
@@ -152,7 +167,20 @@ public class MainActivity extends AppCompatActivity
 		super.onSaveInstanceState(state);
 	}
 
-	public AdManager getAdManager() { return mAdManager; }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch(requestCode) {
+            case LOCATION_PERMISSIONS_REQUEST_CODE:
+                if(grantResults.length == 2 &&
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                        grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    mLocationPermissionAccepted = true;
+                }
+        }
+    }
+
+    public AdManager getAdManager() { return mAdManager; }
 	public StackController getStackController() { return mSc; }
 	
 	// Checks if ads were disabled by purchase
@@ -229,7 +257,19 @@ public class MainActivity extends AppCompatActivity
 			mSc.push(mListFrag, 0);
 			break;
 		case 1:
-			mSc.push(mMapFrag, 1);
+            // Permissions check for API 23+
+            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[] { Manifest.permission.ACCESS_COARSE_LOCATION,
+                                android.Manifest.permission.ACCESS_FINE_LOCATION
+                        },
+                        LOCATION_PERMISSIONS_REQUEST_CODE
+                );
+            }
+            else {
+                mSc.push(mMapFrag, 1);
+            }
 			break;
 		}
 	}

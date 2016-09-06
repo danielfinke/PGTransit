@@ -30,6 +30,9 @@ public class RoutesFragment extends ListFragment
     // Preserves scroll position through StackController
     private int mScrollIndex;
     private int mScrollOffset;
+    // True if content view has been created
+    // Prevents saving scroll position if not yet ready
+    private boolean mContentViewCreated;
     
     // This is the Adapter being used to display the list's data
     private RoutesAdapter mAdapter;
@@ -54,15 +57,32 @@ public class RoutesFragment extends ListFragment
     
     public void onViewCreated(View view, Bundle state) {
         super.onViewCreated(view, state);
+        mContentViewCreated = true;
 
         setupActionBar();
         loadRoutes();
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mContentViewCreated = false;
+    }
     
     // StackController will tell Fragment to save state
     public void saveState(Bundle state) {
-        state.putInt("scrollIndex", getListView().getFirstVisiblePosition());
-        state.putInt("scrollOffset", getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop());
+        int scrollIndex;
+        int scrollOffset;
+        if(mContentViewCreated) {
+            scrollIndex = getListView().getFirstVisiblePosition();
+            scrollOffset = getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop();
+        }
+        else {
+            scrollIndex = mScrollIndex;
+            scrollOffset = mScrollOffset;
+        }
+        state.putInt("scrollIndex", scrollIndex);
+        state.putInt("scrollOffset", scrollOffset);
     }
     
     // StackController will request state restores

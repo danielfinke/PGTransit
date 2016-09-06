@@ -88,10 +88,18 @@ public class TimesFragment extends ListFragment
 	// String weekday value is preserved
 	// Pseudo saves stop instance by storing its PK in the bundle
 	public void saveState(Bundle state) {
+        int scrollIndex;
+        int scrollOffset;
 		if(mContentViewCreated) {
-			state.putInt("scrollIndex", getListView().getFirstVisiblePosition());
-			state.putInt("scrollOffset", getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop());
+            scrollIndex = getListView().getFirstVisiblePosition();
+            scrollOffset = getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop();
 		}
+        else {
+            scrollIndex = mScrollIndex;
+            scrollOffset = mScrollOffset;
+        }
+        state.putInt("scrollIndex", scrollIndex);
+        state.putInt("scrollOffset", scrollOffset);
 		state.putString("weekday", mWeekday);
 		state.putString("stop", mStop.getId());
 	}
