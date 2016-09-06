@@ -1,6 +1,7 @@
 package com.finke.pgtransit.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.database.Cursor;
 
@@ -11,7 +12,6 @@ public class Trip {
 	private int mId;
 	private int mBusId;
 	private String mDay;
-	private ArrayList<MapPoint> mMapPoints;
 	private ArrayList<MinorStopTime> mMinorStopTimes;
 	
 	public final static String[] COLUMNS = {"_id", "bus_id", "day"};
@@ -20,69 +20,92 @@ public class Trip {
 		mId = id;
 		mBusId = busId;
 		mDay = day;
-		mMapPoints = null;
 		mMinorStopTimes = null;
 	}
 	
 	public int getId() { return mId; }
 	public int getBusId() { return mBusId; }
 	public String getDay() { return mDay; }
-	
-	public ArrayList<MapPoint> getMapPoints() {
-		if(mMapPoints != null) {
-			return mMapPoints;
-		}
-		else {
-			try {
-				Cursor c = BusDatabaseHelper.getInstance().getMapPointsCursor(mId);
-				c.moveToFirst();
-				
-				mMapPoints = new ArrayList<MapPoint>();
-				while(!c.isAfterLast()) {
-					mMapPoints.add(new MapPoint(
-							c.getInt(c.getColumnIndex(MapPoint.COLUMNS[0])),
-							c.getInt(c.getColumnIndex(MapPoint.COLUMNS[1])),
-							c.getDouble(c.getColumnIndex(MapPoint.COLUMNS[2])),
-							c.getDouble(c.getColumnIndex(MapPoint.COLUMNS[3]))));
-					c.moveToNext();
-				}
-				c.close();
-				return mMapPoints;
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				return new ArrayList<MapPoint>();
-			}
-		}
-	}
-	
-	public ArrayList<MinorStopTime> getMinorStopTimes() {
-		if(mMinorStopTimes != null) {
-			return mMinorStopTimes;
-		}
-		else {
-			try {
-				Cursor c = BusDatabaseHelper.getInstance().getMinorStopTimesCursor(mId);
-				c.moveToFirst();
-				
-				mMinorStopTimes = new ArrayList<MinorStopTime>();
-				while(!c.isAfterLast()) {
-					mMinorStopTimes.add(new MinorStopTime(
-							c.getInt(c.getColumnIndex(MinorStopTime.COLUMNS[0])),
-							c.getInt(c.getColumnIndex(MinorStopTime.COLUMNS[1])),
-							c.getInt(c.getColumnIndex(MinorStopTime.COLUMNS[2])),
-							c.getInt(c.getColumnIndex(MinorStopTime.COLUMNS[3])),
-							c.getInt(c.getColumnIndex(MinorStopTime.COLUMNS[4]))));
-					c.moveToNext();
-				}
-				c.close();
-				return mMinorStopTimes;
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-				return new ArrayList<MinorStopTime>();
-			}
-		}
-	}
-	
+
+    /**
+     * Get all unique map points within a list of trips
+     * @param trips Filter the results by this list of trips
+     * @return All unique map points with the list of trips
+     */
+    public static List<MapPoint> getDistinctMapPoints(List<Trip> trips) {
+        ArrayList<MapPoint> items = new ArrayList<>();
+        try {
+            Cursor c = BusDatabaseHelper.getInstance().getDistinctMapPointsCursor(idsFromList(trips));
+
+            if (c.getCount() == 0) {
+                return items;
+            }
+
+            c.moveToFirst();
+
+            while (!c.isAfterLast()) {
+                items.add(new MapPoint(
+                        c.getInt(c.getColumnIndex(MapPoint.COLUMNS[0])),
+                        c.getInt(c.getColumnIndex(MapPoint.COLUMNS[1])),
+                        c.getDouble(c.getColumnIndex(MapPoint.COLUMNS[2])),
+                        c.getDouble(c.getColumnIndex(MapPoint.COLUMNS[3]))));
+                c.moveToNext();
+            }
+            c.close();
+
+            return items;
+        }
+        catch(Exception ex) {
+            ex.printStackTrace();
+            return items;
+        }
+    }
+
+    /**
+     * Get all unique minor stops within a list of trips
+     * @param trips Filter the results by this list of trips
+     * @return All unique minor stops within the list of trips
+     */
+    public static List<MinorStop> getDistinctMinorStops(List<Trip> trips) {
+        ArrayList<MinorStop> items = new ArrayList<>();
+        try {
+            Cursor c = BusDatabaseHelper.getInstance().getDistinctMinorStopsCursor(idsFromList(trips));
+
+            if(c.getCount() == 0) {
+                return items;
+            }
+
+            c.moveToFirst();
+
+            while(!c.isAfterLast()) {
+                items.add(new MinorStop(
+                        c.getInt(c.getColumnIndex(MinorStop.COLUMNS[0])),
+                        c.getString(c.getColumnIndex(MinorStop.COLUMNS[1])),
+                        c.getDouble(c.getColumnIndex(MinorStop.COLUMNS[2])),
+                        c.getDouble(c.getColumnIndex(MinorStop.COLUMNS[3]))
+                ));
+                c.moveToNext();
+            }
+            c.close();
+
+            return items;
+        }
+        catch(Exception ex) {
+            ex.printStackTrace();
+            return items;
+        }
+    }
+
+    /**
+     * Extract a list of trip IDs from a list of trips
+     * @param trips The list from which to extract IDs
+     * @return The list of IDs from the list of trips
+     */
+    private static List<Integer> idsFromList(List<Trip> trips) {
+        List<Integer> tripIds = new ArrayList<>();
+        for(Trip trip : trips) {
+            tripIds.add(trip.getId());
+        }
+        return tripIds;
+    }
 }

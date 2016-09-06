@@ -1,6 +1,8 @@
 package com.finke.pgtransit.model;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 import android.database.Cursor;
 
@@ -28,6 +30,17 @@ public class MinorStop {
 	public String getName() { return mName; }
 	public double getLatitude() { return mLatitude; }
 	public double getLongitude() { return mLongitude; }
+
+    public MinorStopTime getNextMinorStopTime(String weekday, int busId) {
+        Calendar cal = Calendar.getInstance();
+        ArrayList<TimeInterface> minorStopTimes = getMinorStopTimes(weekday, busId);
+        for(TimeInterface mst : minorStopTimes) {
+            if(mst.getCalendarTime().after(cal)) {
+                return (MinorStopTime)mst;
+            }
+        }
+        return null;
+    }
 	
 	public ArrayList<TimeInterface> getMinorStopTimes(String weekday, int busId) {
 		if(mMinorStopTimes != null) {

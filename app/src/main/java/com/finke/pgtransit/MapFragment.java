@@ -7,6 +7,7 @@ import java.util.List;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -57,7 +58,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
  * selection
  */
 public class MapFragment extends Fragment implements
-		Stackable, LoaderManager.LoaderCallbacks<Void>, OnItemClickListener {
+		Stackable, LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>, OnItemClickListener {
+    private final static String MAP_DATA_BUNDLE_KEY = "bus_index";
 
 	// Map defaults position to center of PG when no routes selected
 	private final double DEFAULT_LAT = 53.9170641;
@@ -67,8 +69,8 @@ public class MapFragment extends Fragment implements
 	private boolean[] mRouteSel;
 	private boolean[] mRouteShowing;
 	private ArrayList<Bus> mBusses;
-	private ArrayList<ArrayList<MinorStop>> mMinorStops;
-	private ArrayList<ArrayList<MinorStopTime>> mMinorStopTimes;
+	private ArrayList<List<MinorStop>> mMinorStops;
+	private ArrayList<List<MinorStopTime>> mMinorStopTimes;
 	private ArrayList<ArrayList<Marker>> mMarkers;
 	private ArrayList<Polyline> mPolylines;
 	private MapView mMapView;
@@ -227,28 +229,47 @@ public class MapFragment extends Fragment implements
 				if(index != -1) {
 					TextView minorStopName = (TextView)v.findViewById(R.id.minor_stop_name);
 					TextView estimatedArrivalValue = (TextView)v.findViewById(R.id.estimated_arrival_value);
+                    TextView estimatedDepartureValue = (TextView)v.findViewById(R.id.estimated_departure_value);
 					MinorStop ms = mMinorStops.get(i).get(index);
 					MinorStopTime mst = mMinorStopTimes.get(i).get(index);
 					minorStopName.setText(ms.getName());
-					Calendar arrivalTime = mst.getCalendarTime();
-					Calendar departureTime = mst.getDepartureCalendarTime();
-					int arrH = arrivalTime.get(Calendar.HOUR);
-					int arrM = arrivalTime.get(Calendar.MINUTE);
-					int depH = departureTime.get(Calendar.HOUR);
-					int depM = departureTime.get(Calendar.MINUTE);
-					estimatedArrivalValue.setText(arrH +
-							":" + String.format("%02d", arrM) +
-							" " + (arrivalTime.get(Calendar.AM_PM) == 0 ? "AM" : "PM"));
-					TextView estimatedDepartureValue = (TextView)v.findViewById(R.id.estimated_departure_value);
-					if(arrH == depH && arrM == depM) {
-						estimatedDepartureValue.setVisibility(View.GONE);
-						v.findViewById(R.id.estimated_departure).setVisibility(View.GONE);
-					}
-					else {
-						estimatedDepartureValue.setText(depH +
-								":" + String.format("%02d", depM) +
-								" " + (departureTime.get(Calendar.AM_PM) == 0 ? "AM" : "PM"));
-					}
+
+                    // Null if bus does not stop here anymore today
+                    if(mst != null) {
+                        Resources res = getResources();
+                        Calendar arrivalTime = mst.getCalendarTime();
+                        Calendar departureTime = mst.getDepartureCalendarTime();
+                        int arrH = arrivalTime.get(Calendar.HOUR);
+                        int arrM = arrivalTime.get(Calendar.MINUTE);
+                        int depH = departureTime.get(Calendar.HOUR);
+                        int depM = departureTime.get(Calendar.MINUTE);
+                        estimatedArrivalValue.setText(
+                                String.format(res.getString(R.string.estimated_time_format),
+                                        arrH,
+                                        arrM,
+                                        res.getString(
+                                                (arrivalTime.get(Calendar.AM_PM) == 0 ? R.string.am : R.string.pm))));
+
+                        // Hide the departure time if it is the same as the
+                        // arrival time
+                        if(arrH == depH && arrM == depM) {
+                            estimatedDepartureValue.setVisibility(View.GONE);
+                            v.findViewById(R.id.estimated_departure).setVisibility(View.GONE);
+                        }
+                        else {
+                            estimatedDepartureValue.setText(
+                                    String.format(res.getString(R.string.estimated_time_format),
+                                            depH,
+                                            depM,
+                                            res.getString(
+                                                    (departureTime.get(Calendar.AM_PM) == 0 ? R.string.am : R.string.pm))));
+                        }
+                    }
+                    else {
+                        estimatedArrivalValue.setText(R.string.no_more_arrivals_today);
+                        estimatedDepartureValue.setVisibility(View.GONE);
+                        v.findViewById(R.id.estimated_departure).setVisibility(View.GONE);
+                    }
 					
 					return v;
 				}
@@ -282,8 +303,8 @@ public class MapFragment extends Fragment implements
 			if(result != null) {
 				mRouteSel = new boolean[result.size()];
 				mRouteShowing = new boolean[result.size()];
-				mMinorStops = new ArrayList<ArrayList<MinorStop>>();
-				mMinorStopTimes = new ArrayList<ArrayList<MinorStopTime>>();
+				mMinorStops = new ArrayList<>();
+				mMinorStopTimes = new ArrayList<>();
 				mMarkers = new ArrayList<ArrayList<Marker>>();
 				mPolylines = new ArrayList<Polyline>();
 				for(int i = 0; i < result.size(); i++) {
@@ -320,59 +341,69 @@ public class MapFragment extends Fragment implements
 		actionBar.setDisplayHomeAsUpEnabled(false);
 	}
 
-	/* Fetches list of stops for each checked off sidebar route */
+    /**
+     * Load the requested route's map data in background
+     * @param id Unused
+     * @param args Arguments to specify what bus data to load
+     * @return Map points, stops, and stop times to use on the map/markers
+     */
 	@Override
-	public AsyncTaskLoader<Void> onCreateLoader(int id, Bundle arg1) {
-		return new AsyncTaskLoader<Void>(getActivity()) {
-			public Void loadInBackground() {
-				for(int i = 0; i < mRouteSel.length; i++) {
-					// Only include route, if chosen
-					if(mRouteSel[i]) {
-						if(mMarkers.get(i).isEmpty()) {
-							Bus bus = mAdapter.getBus(i);
-							Trip trip = bus.getNextTrip(mWeekday);
-							if(trip != null) {
-								trip.getMapPoints();
-								ArrayList<MinorStopTime> minorStopTimes = trip.getMinorStopTimes();
-								mMinorStopTimes.set(i, minorStopTimes);
-								for(MinorStopTime minorStopTime : minorStopTimes) {
-									MinorStop ms = minorStopTime.getMinorStop();
-									mMinorStops.get(i).add(ms);
-								}
-							}
-						}
-					}
-				}
-				return null;
+	public AsyncTaskLoader<AsyncTaskResult> onCreateLoader(final int id, final Bundle args) {
+		return new AsyncTaskLoader<AsyncTaskResult>(getActivity()) {
+			public AsyncTaskResult loadInBackground() {
+                AsyncTaskResult result = new AsyncTaskResult();
+                int busIndex = args.getInt(MAP_DATA_BUNDLE_KEY);
+
+                // Load data for the chosen bus
+                if(mRouteSel[busIndex]) {
+                    Bus bus = mAdapter.getBus(busIndex);
+                    result.color = bus.getColor();
+
+                    List<Trip> trips = bus.getTrips(mWeekday);
+                    result.mapPoints = Trip.getDistinctMapPoints(trips);
+                    result.minorStops = Trip.getDistinctMinorStops(trips);
+                    result.minorStopTimes = new ArrayList<>();
+
+                    // Find the next time for each stop, and use that for the
+                    // marker popup
+                    for(MinorStop stop : result.minorStops) {
+                        result.minorStopTimes.add(stop.getNextMinorStopTime(mWeekday, bus.getId()));
+                    }
+                }
+
+				return result;
 			}
 		};
 	}
 
-	/* Renders content onto the map (for chosen bus routes) */
+    /**
+     * Render map data onto the map
+     * @param loader Loader that loaded data in the background
+     * @param result Map points, stops, and stop times to use on the map/
+     *               markers
+     */
 	@Override
-	public void onLoadFinished(Loader<Void> loader, Void result) {
+	public void onLoadFinished(Loader<AsyncTaskResult> loader, AsyncTaskResult result) {
 		boolean empty = true;
 		LatLngBounds.Builder builder = new LatLngBounds.Builder();
 		for(int i = 0; i < mRouteSel.length; i++) {
 			if(mRouteSel[i] && !mRouteShowing[i]) {
-				Bus bus = mAdapter.getBus(i);
-				Trip trip = bus.getNextTrip(mWeekday);
-				if(trip != null) {
-					ArrayList<MapPoint> mapPoints = trip.getMapPoints();
-					mPolylines.set(i, makePolyline(mapPoints, bus.getColor()));
-					ArrayList<MinorStopTime> minorStopTimes = trip.getMinorStopTimes();
-					mMarkers.set(i, makeMarkers(minorStopTimes, bus.getColor()));
-					mRouteShowing[i] = true;
-				}
-				else {
-					AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+                if(!result.mapPoints.isEmpty()) {
+                    mPolylines.set(i, makePolyline(result.mapPoints, result.color));
+                    mMarkers.set(i, makeMarkers(result.minorStops, result.color));
+                    mMinorStops.set(i, result.minorStops);
+                    mMinorStopTimes.set(i, result.minorStopTimes);
+                    mRouteShowing[i] = true;
+                }
+                else {
+                    AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
 					dialogBuilder.setTitle(getResources().getString(R.string.no_routes));
 				    dialogBuilder.setMessage(getResources().getString(R.string.route_not_operating) +
 				    		" " + mWeekday.toLowerCase() + "s");
 				    // Create the AlertDialog object and return it
 				    dialogBuilder.create().show();
 				    mRouteSel[i] = false;
-				}
+                }
 			}
 			else if(!mRouteSel[i] && mRouteShowing[i]) {
 				mPolylines.get(i).remove();
@@ -383,16 +414,12 @@ public class MapFragment extends Fragment implements
 				mMarkers.set(i, markers);
 				mRouteShowing[i] = false;
 			}
-			
+
+            // Set zoom bounds for zoom adjustment
 			if(mRouteSel[i]) {
-				Bus bus = mAdapter.getBus(i);
-				Trip trip = bus.getNextTrip(mWeekday);
-				if(trip != null) {
-					ArrayList<MapPoint> mapPoints = trip.getMapPoints();
-					for(MapPoint mapPoint : mapPoints) {
-						builder.include(new LatLng(mapPoint.getLatitude(), mapPoint.getLongitude()));
-					}
-				}
+                for(Marker m : mMarkers.get(i)) {
+                    builder.include(m.getPosition());
+                }
 				empty = false;
 			}
 		}
@@ -410,18 +437,41 @@ public class MapFragment extends Fragment implements
 		}
 	}
 
+    /**
+     * Unused. Reset data acquired by an AsyncTaskLoader
+     * @param loader The loader that is being reset
+     */
 	@Override
-	public void onLoaderReset(Loader<Void> arg0) {
-		
-	}
+	public void onLoaderReset(Loader<AsyncTaskResult> loader) {}
 
-	/* Refreshes the map view (incl. stops, lines) */
+    /**
+     * Represents map data returned for a particular bus route
+     * @author Daniel Finke
+     * @since 2016-09-05
+     */
+    public class AsyncTaskResult {
+        public int color;
+        public List<MapPoint> mapPoints;
+        public List<MinorStop> minorStops;
+        public List<MinorStopTime> minorStopTimes;
+    }
+
+    /**
+     * Requests an AsyncTaskLoader job to load map data for the clicked route
+     * @param i The AdapterView instance containing the item clicked
+     * @param v The view that was clicked
+     * @param position The position of the clicked view in the AdapterView
+     * @param id The id of the item that was clicked
+     */
 	public void onItemClick(AdapterView<?> i, View v, int position, long id) {
 		mRouteSel[position] = !mRouteSel[position];
-		getLoaderManager().restartLoader(0, null, this).forceLoad();
+        // Set parameters for which bus's map data should be loaded
+        Bundle args = new Bundle();
+        args.putInt(MAP_DATA_BUNDLE_KEY, position);
+		getLoaderManager().restartLoader(0, args, this).forceLoad();
 	}
 	
-	public Polyline makePolyline(ArrayList<MapPoint> mapPoints, int color) {
+	public Polyline makePolyline(List<MapPoint> mapPoints, int color) {
 		PolylineOptions opts = new PolylineOptions();
 		opts.zIndex(1);
 		
@@ -433,13 +483,12 @@ public class MapFragment extends Fragment implements
 		return mMap.addPolyline(opts);
 	}
 	
-	public ArrayList<Marker> makeMarkers(ArrayList<MinorStopTime> minorStopTimes, int color) {
+	public ArrayList<Marker> makeMarkers(List<MinorStop> minorStops, int color) {
 		LatLngBounds.Builder builder = new LatLngBounds.Builder();
 		ArrayList<Marker> markers = new ArrayList<Marker>();
 		// For each loaded stop, create a marker at its coordinates
 		// and set its marker hex color
-		for(MinorStopTime mst : minorStopTimes) {
-			MinorStop ms = mst.getMinorStop();
+		for(MinorStop ms : minorStops) {
 			LatLng pos = new LatLng(ms.getLatitude(), ms.getLongitude());
 			builder.include(pos);
 			float[] hsv = new float[3];

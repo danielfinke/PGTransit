@@ -27,6 +27,10 @@
     
     <string name="estimated_arrival_text">Estimated Arrival:</string>
     <string name="estimated_departure_text">Estimated Departure:</string>
+    <string name="estimated_time_format">%1$d:%2$02d %3$s</string>
+    <string name="am">AM</string>
+    <string name="pm">PM</string>
+    <string name="no_more_arrivals_today">No more arrivals today</string>
     <string name="tap_for_more_times_text">Tap popup for more times</string>
     
     <!-- More view -->

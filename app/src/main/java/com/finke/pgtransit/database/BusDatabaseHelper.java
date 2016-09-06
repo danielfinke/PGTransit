@@ -1,21 +1,20 @@
 package com.finke.pgtransit.database;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.finke.pgtransit.model.Bus;
-import com.finke.pgtransit.model.MapPoint;
 import com.finke.pgtransit.model.MinorStop;
-import com.finke.pgtransit.model.MinorStopTime;
 import com.finke.pgtransit.model.Stop;
+
+import java.io.IOException;
+import java.util.List;
 
 public class BusDatabaseHelper extends DataBaseHelper {
 
-	private static final int DATABASE_VERSION = 7;
+	private static final int DATABASE_VERSION = 8;
     private static BusDatabaseHelper instance;
     
     public static BusDatabaseHelper getInstance() throws Exception {
@@ -78,21 +77,62 @@ public class BusDatabaseHelper extends DataBaseHelper {
 				"WHERE major_stop_id = ? " +
 				"ORDER BY time ASC", new String[] { stopId });
 	}
+
+    /**
+     * Get a Cursor over filtered trip data
+     * @param busId Filter the results by bus id
+     * @param weekday Filter the result by day of week
+     * @return A Cursor over filtered trip data
+     */
 	public Cursor getTripCursor(int busId, String weekday) {
-		return myDataBase.rawQuery("SELECT t._id as _id, t.bus_id as bus_id, t.day as day, MIN(mst.arrival_time) as min_arrival_time " +
-				"FROM trip t JOIN minor_stop_time mst ON t._id = mst.trip_id " +
-				"WHERE t.bus_id = ? AND t.day = ? " +
-				"GROUP BY t._id, t.bus_id, t.day " +
-				"ORDER BY min_arrival_time", new String[] { Integer.toString(busId), weekday });
+        return myDataBase.rawQuery("SELECT t._id as _id, t.bus_id as bus_id, t.day as day " +
+				"FROM trip t " +
+				"WHERE t.bus_id = ? AND t.day = ?", new String[] { Integer.toString(busId), weekday });
 	}
-	public Cursor getMapPointsCursor(int tripId) {
-		return myDataBase.query("map_points", MapPoint.COLUMNS, "trip_id = ?",
-				new String[] { Integer.toString(tripId) }, null, null, null);
+
+    /**
+     * Get a Cursor over map points for a set of trips
+     * @param tripIds Filter the results so the map points are in these trips
+     * @return A Cursor over map points for a set of trips
+     */
+	public Cursor getDistinctMapPointsCursor(List<Integer> tripIds) {
+        StringBuilder whereClauseBuilder = new StringBuilder();
+        for(int i = 0; i < tripIds.size(); i++) {
+            whereClauseBuilder.append(tripIds.get(i));
+            if(i < tripIds.size() - 1) {
+                whereClauseBuilder.append(",");
+            }
+        }
+        return myDataBase.rawQuery("SELECT _id, trip_id, latitude, longitude " +
+                "FROM map_points " +
+                "WHERE _id IN (" +
+                "SELECT MIN(_id) " +
+                "FROM map_points " +
+                "WHERE trip_id IN (" + whereClauseBuilder.toString() + ") " +
+                "GROUP BY latitude, longitude)", null);
 	}
-	public Cursor getMinorStopTimesCursor(int tripId) {
-		return myDataBase.query("minor_stop_time", MinorStopTime.COLUMNS, "trip_id = ?",
-				new String[] { Integer.toString(tripId) }, null, null, null);
-	}
+
+    /**
+     * Get a Cursor over minor stops for a set of trips
+     * @param tripIds Filter the results so the minor stops are in these trips
+     * @return A Cursor over minor stops for a set of trips
+     */
+    public Cursor getDistinctMinorStopsCursor(List<Integer> tripIds) {
+        StringBuilder whereClauseBuilder = new StringBuilder();
+        for(int i = 0; i < tripIds.size(); i++) {
+            whereClauseBuilder.append(tripIds.get(i));
+            if(i < tripIds.size() - 1) {
+                whereClauseBuilder.append(",");
+            }
+        }
+        return myDataBase.rawQuery("SELECT * " +
+                "FROM minor_stop " +
+                "WHERE _id IN ( " +
+                "SELECT ms._id " +
+                "FROM minor_stop ms " +
+                "JOIN minor_stop_time mst ON mst.minor_stop_id = ms._id " +
+                "WHERE trip_id IN (" + whereClauseBuilder.toString() + "))", null);
+    }
 	public Cursor getMinorStopTimesCursorForMinorStop(int minorStopId, String weekday, int busId) {
 		return myDataBase.rawQuery("SELECT mst._id as _id, mst.trip_id as trip_id, " + 
 				"mst.minor_stop_id as minor_stop_id, mst.arrival_time as arrival_time, mst.departure_time as departure_time " +

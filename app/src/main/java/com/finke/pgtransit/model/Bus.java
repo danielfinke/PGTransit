@@ -1,13 +1,12 @@
 package com.finke.pgtransit.model;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
 import android.database.Cursor;
 import android.graphics.Color;
 
 import com.finke.pgtransit.database.BusDatabaseHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /* Represents a specific bus that drives around town
  * mOwnerNo is the number seen on the bus screen
@@ -44,39 +43,40 @@ public class Bus {
 	public int getDirection() { return mDirection; }
 	public String getDirectionName() { return mDirectionName; }
 	public int getColor() { return mColor; }
-	
-	public Trip getNextTrip(String weekday) {
-		try {
-			Cursor c = BusDatabaseHelper.getInstance().getTripCursor(mId, weekday);
 
-			if(c.getCount() == 0) {
-				return null;
-			}
-			
-			c.moveToFirst();
-			
-			Calendar cal = Calendar.getInstance();
-			int mins = (cal.get(Calendar.HOUR_OF_DAY) * 60) + cal.get(Calendar.MINUTE);
-			int nextPos = 0;
-			
-			while(!c.isAfterLast()) {
-				if(c.getInt(c.getColumnIndex("min_arrival_time")) > mins) {
-					nextPos = c.getPosition();
-				}
-				c.moveToNext();
-			}
-			
-			c.moveToPosition(nextPos);
-			return new Trip(
-					c.getInt(c.getColumnIndex(Trip.COLUMNS[0])),
-					c.getInt(c.getColumnIndex(Trip.COLUMNS[1])),
-					c.getString(c.getColumnIndex(Trip.COLUMNS[2])));
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+    /**
+     * Get a list of trips that occur on the given day for this bus
+     * @param weekday The day (Weekday, Saturday, Sunday) to filter trips
+     * @return A list of trips occurring on the given day for this bus
+     */
+    public List<Trip> getTrips(String weekday) {
+        try {
+            Cursor c = BusDatabaseHelper.getInstance().getTripCursor(mId, weekday);
+
+            if (c.getCount() == 0) {
+                return null;
+            }
+
+            c.moveToFirst();
+
+            ArrayList<Trip> items = new ArrayList<>();
+            while (!c.isAfterLast()) {
+                items.add(new Trip(
+                        c.getInt(c.getColumnIndex(Trip.COLUMNS[0])),
+                        c.getInt(c.getColumnIndex(Trip.COLUMNS[1])),
+                        c.getString(c.getColumnIndex(Trip.COLUMNS[2]))
+                ));
+                c.moveToNext();
+            }
+            c.close();
+
+            return items;
+        }
+        catch(Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
 	
 	/* Fetch all bus records from the db */
 	public static List<Bus> fetchFromDatabase() throws Exception {
