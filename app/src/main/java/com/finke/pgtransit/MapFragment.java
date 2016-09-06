@@ -72,7 +72,7 @@ public class MapFragment extends Fragment implements
 	private ArrayList<List<MinorStop>> mMinorStops;
 	private ArrayList<List<MinorStopTime>> mMinorStopTimes;
 	private ArrayList<ArrayList<Marker>> mMarkers;
-	private ArrayList<Polyline> mPolylines;
+	private ArrayList<List<Polyline>> mPolylines;
 	private MapView mMapView;
 	private GoogleMap mMap;
 	// Time display for the stops when clicked
@@ -306,7 +306,7 @@ public class MapFragment extends Fragment implements
 				mMinorStops = new ArrayList<>();
 				mMinorStopTimes = new ArrayList<>();
 				mMarkers = new ArrayList<ArrayList<Marker>>();
-				mPolylines = new ArrayList<Polyline>();
+				mPolylines = new ArrayList<>();
 				for(int i = 0; i < result.size(); i++) {
 					mMinorStops.add(new ArrayList<MinorStop>());
 					mMinorStopTimes.add(new ArrayList<MinorStopTime>());
@@ -389,7 +389,7 @@ public class MapFragment extends Fragment implements
 		for(int i = 0; i < mRouteSel.length; i++) {
 			if(mRouteSel[i] && !mRouteShowing[i]) {
                 if(!result.mapPoints.isEmpty()) {
-                    mPolylines.set(i, makePolyline(result.mapPoints, result.color));
+                    mPolylines.set(i, makePolylines(result.mapPoints, result.color));
                     mMarkers.set(i, makeMarkers(result.minorStops, result.color));
                     mMinorStops.set(i, result.minorStops);
                     mMinorStopTimes.set(i, result.minorStopTimes);
@@ -406,12 +406,14 @@ public class MapFragment extends Fragment implements
                 }
 			}
 			else if(!mRouteSel[i] && mRouteShowing[i]) {
-				mPolylines.get(i).remove();
-				ArrayList<Marker> markers = mMarkers.get(i);
-				for(Marker marker : markers) {
+                for(Polyline polyline : mPolylines.get(i)) {
+                    polyline.remove();
+                }
+				mPolylines.get(i).clear();
+				for(Marker marker : mMarkers.get(i)) {
 					marker.remove();
 				}
-				mMarkers.set(i, markers);
+                mMarkers.get(i).clear();
 				mRouteShowing[i] = false;
 			}
 
@@ -470,17 +472,38 @@ public class MapFragment extends Fragment implements
         args.putInt(MAP_DATA_BUNDLE_KEY, position);
 		getLoaderManager().restartLoader(0, args, this).forceLoad();
 	}
-	
-	public Polyline makePolyline(List<MapPoint> mapPoints, int color) {
-		PolylineOptions opts = new PolylineOptions();
-		opts.zIndex(1);
-		
-		for(MapPoint mapPoint : mapPoints) {
-			opts.add(new LatLng(mapPoint.getLatitude(), mapPoint.getLongitude()));
-		}
-		
-		opts.color(color);
-		return mMap.addPolyline(opts);
+
+    /**
+     * Convert a list of map points into individual trip polylines
+     * @param mapPoints The map points to make lines from
+     * @param color The color the polyline should be
+     * @return A list of polylines made from the map points
+     */
+	public List<Polyline> makePolylines(List<MapPoint> mapPoints, int color) {
+		ArrayList<Polyline> polylines = new ArrayList<>();
+        int tripId = 0;
+        PolylineOptions opts = null;
+
+        for(MapPoint point : mapPoints) {
+            // Change to a new polyline for each trip
+            if(tripId != point.getTripId()) {
+                if(opts != null) {
+                    polylines.add(mMap.addPolyline(opts));
+                }
+                opts = new PolylineOptions();
+                opts.zIndex(1);
+                opts.color(color);
+                tripId = point.getTripId();
+            }
+            opts.add(new LatLng(point.getLatitude(), point.getLongitude()));
+        }
+
+        // Add the last polyline
+        if(opts != null) {
+            polylines.add(mMap.addPolyline(opts));
+        }
+
+		return polylines;
 	}
 	
 	public ArrayList<Marker> makeMarkers(List<MinorStop> minorStops, int color) {
