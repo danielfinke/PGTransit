@@ -10,6 +10,7 @@
     <!-- Advertising -->
     
     <!-- In-app Billing -->
+    <string name="you_can_now_remove_ads">You can now remove ads. Go to the Settings/More page to do so.</string>
     <string name="iab_sku_remove_ads">remove_ads</string>
     <string name="iab_prefs">iabPrefs</string>
     

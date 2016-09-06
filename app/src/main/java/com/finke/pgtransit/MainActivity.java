@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity
 		if(prefs.getBoolean("firstLaunch1", true)) {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			TextView textView = new TextView(this);
-			textView.setText("You can now remove ads. Go to the More page to do so.");
+			textView.setText(R.string.you_can_now_remove_ads);
 			float scale = getResources().getDisplayMetrics().density;
 			int dpAsPixels = (int) (10*scale + 0.5f);
 			textView.setPadding(dpAsPixels, dpAsPixels, dpAsPixels, dpAsPixels);
