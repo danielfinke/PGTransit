@@ -149,10 +149,10 @@ public class StackController {
 		if(mBackStacks.size() != 0) {
 			// Slide other way if tab switching from right to left
 			if(stackNo < mStackNo) {
-				ft.setCustomAnimations(R.animator.slide_in_left, R.animator.slide_out_right);
+				ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
 			}
 			else {
-				ft.setCustomAnimations(R.animator.slide_in_right, R.animator.slide_out_left);
+				ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
 			}
 		}
 		
@@ -189,7 +189,7 @@ public class StackController {
 	 */
 	public void pop() {
 		FragmentTransaction ft = mFm.beginTransaction();
-		ft.setCustomAnimations(R.animator.slide_in_left, R.animator.slide_out_right);
+		ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
 		ArrayList<Stackable> selStack = mBackStacks.get(mStackNo);
 		selStack.remove(selStack.size()-1);
 		ft.replace(R.id.fragmentContainer, (Fragment)selStack.get(selStack.size()-1), null);
