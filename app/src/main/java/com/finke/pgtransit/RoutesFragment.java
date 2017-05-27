@@ -8,8 +8,6 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -96,10 +94,10 @@ public class RoutesFragment extends ListFragment
     }
     
     private void setupActionBar() {
-        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-        actionBar.setTitle(R.string.routeListTitle);
-        actionBar.setHomeButtonEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(false);
+//        ActionBar actionBar = getActivity().getActionBar();
+//        actionBar.setTitle(R.string.routeListTitle);
+//        actionBar.setHomeButtonEnabled(false);
+//        actionBar.setDisplayHomeAsUpEnabled(false);
     }
     
     // Initiate bus route loading from SQLite db
@@ -182,6 +180,6 @@ public class RoutesFragment extends ListFragment
     public void onListItemClick(ListView i, View v, int position, long id) {
         StopsFragment frag = new StopsFragment();
         frag.setBus(mAdapter.getBus(position));
-        ((MainActivity)getActivity()).getStackController().push(frag);
+        ((MainActivity)getActivity()).pushFragment(frag, 0);
     }
 }

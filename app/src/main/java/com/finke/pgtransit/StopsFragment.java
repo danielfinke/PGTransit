@@ -4,13 +4,10 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -121,9 +118,9 @@ public class StopsFragment extends ListFragment implements Stackable,
 	}
 	
 	private void setupActionBar() {
-		ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
-		actionBar.setDisplayHomeAsUpEnabled(true);
+//		ActionBar actionBar = getActivity().getActionBar();
+//		actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
+//		actionBar.setDisplayHomeAsUpEnabled(true);
 	}
 	
 	// Initiate stop locn loading from SQLite db
@@ -198,8 +195,8 @@ public class StopsFragment extends ListFragment implements Stackable,
 		}
 		// Restores scroll position if state was restored
 		// and had triggered a data load
-		ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
+//		ActionBar actionBar = getActivity().getActionBar();
+//		actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
 		getListView().setSelectionFromTop(mScrollIndex, mScrollOffset);
 	}
 
@@ -229,7 +226,7 @@ public class StopsFragment extends ListFragment implements Stackable,
 		TimesFragment frag = new TimesFragment();
 		frag.setStop(mAdapter.getStop(position));
 		frag.setWeekday(mWeekday);
-		((MainActivity)getActivity()).getStackController().push(frag);
+//		((MainActivity)getActivity()).getStackController().push(frag);
 	}
 
 }

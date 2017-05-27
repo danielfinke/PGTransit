@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
@@ -17,8 +18,6 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -172,7 +171,7 @@ public class MapFragment extends Fragment implements
 					if(index != -1) {
 						mDialog.setMinorStop(mMinorStops.get(i).get(index));
 						mDialog.setBus(mBusses.get(i));
-						mDialog.show(getActivity().getSupportFragmentManager(), null);
+						mDialog.show(getActivity().getFragmentManager(), null);
 					}
 				}
 			}
@@ -335,10 +334,10 @@ public class MapFragment extends Fragment implements
 	}
 	
 	private void setupActionBar() {
-		ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(R.string.mapTitle);
-		actionBar.setHomeButtonEnabled(false);
-		actionBar.setDisplayHomeAsUpEnabled(false);
+//		ActionBar actionBar = getActivity().getActionBar();
+//		actionBar.setTitle(R.string.mapTitle);
+//		actionBar.setHomeButtonEnabled(false);
+//		actionBar.setDisplayHomeAsUpEnabled(false);
 	}
 
     /**

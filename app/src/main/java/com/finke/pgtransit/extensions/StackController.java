@@ -115,7 +115,7 @@ public class StackController {
 		// Add the topmost fragment from the last used tab back in
 		FragmentTransaction ft = mFm.beginTransaction();
 		ArrayList<Stackable> lastStack = mBackStacks.get(mStackNo);
-		ft.replace(R.id.fragmentContainer, (Fragment)lastStack.get(lastStack.size()-1));
+//		ft.replace(R.id.fragmentContainer, (Fragment)lastStack.get(lastStack.size()-1));
 		ft.commit();
 	}
 	
@@ -168,7 +168,7 @@ public class StackController {
 			if(!stack.isEmpty()) {
 				saveStateInMemory(stack.get(stack.size()-1), mStackNo + "|" + (stack.size()-1));
 			}
-			ft.replace(R.id.fragmentContainer, (Fragment)newFrag, null);
+//			ft.replace(R.id.fragmentContainer, (Fragment)newFrag, null);
 			ft.commit();
 			mBackStacks.get(stackNo).add(newFrag);
 		}
@@ -176,7 +176,7 @@ public class StackController {
 		else {
 			saveStateInMemory(stack.get(stack.size()-1), mStackNo + "|" + (stack.size()-1));
 			ArrayList<Stackable> selStack = mBackStacks.get(stackNo);
-			ft.replace(R.id.fragmentContainer, (Fragment)selStack.get(selStack.size()-1), null);
+//			ft.replace(R.id.fragmentContainer, (Fragment)selStack.get(selStack.size()-1), null);
 			ft.commit();
 			restoreStateInMemory(selStack.get(selStack.size()-1), stackNo + "|" + (selStack.size()-1));
 		}
@@ -192,7 +192,7 @@ public class StackController {
 		ft.setCustomAnimations(R.anim.slide_in_left, R.anim.slide_out_right);
 		ArrayList<Stackable> selStack = mBackStacks.get(mStackNo);
 		selStack.remove(selStack.size()-1);
-		ft.replace(R.id.fragmentContainer, (Fragment)selStack.get(selStack.size()-1), null);
+//		ft.replace(R.id.fragmentContainer, (Fragment)selStack.get(selStack.size()-1), null);
 		ft.commit();
 		restoreStateInMemory(selStack.get(selStack.size()-1), mStackNo + "|" + (selStack.size()-1));
 	}
@@ -212,7 +212,7 @@ public class StackController {
 			ArrayList<Stackable> lastStack = mBackStacks.get(mStackNo);
 			Stackable frag = lastStack.get(lastStack.size()-1);
 			frag.restoreState(mViewState.getBundle(mStackNo + "|" + (lastStack.size()-1)));
-			ft.replace(R.id.fragmentContainer, (Fragment)frag);
+//			ft.replace(R.id.fragmentContainer, (Fragment)frag);
 			ft.commit();
 			mStopped = false;
 		}

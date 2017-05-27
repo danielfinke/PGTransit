@@ -10,11 +10,14 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
+import android.support.v4.view.PagerTabStrip;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -22,21 +25,18 @@ import android.widget.TextView;
 import com.finke.pgtransit.database.BusDatabaseHelper;
 import com.finke.pgtransit.extensions.AdManager;
 import com.finke.pgtransit.extensions.AppRater;
-import com.finke.pgtransit.extensions.StackController;
 
 /* Handles all activity life cycle/UI interactions for the
  * Schedules and Maps tabs */
-public class MainActivity extends AppCompatActivity
-	implements ActionBar.TabListener {
+public class MainActivity extends AppCompatActivity {
     private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
 	
 	private boolean mRestored;
 	// Container for Google AdMob advertisements
 	private LinearLayout mAdCont;
-	// Left tab view container
-	private RoutesFragment mListFrag;
-	// Right tab view container for MapFragment
-	private MapFragment mMapFrag;
+	// ViewPager for tabs
+	private ViewPager mViewPager;
+	private ViewPagerAdapter mViewPagerAdapter;
     // Used to automatically push map fragment after resume when location
     // permission is accepted
     private boolean mLocationPermissionAccepted = false;
@@ -44,8 +44,6 @@ public class MainActivity extends AppCompatActivity
 	// Handles displaying banner ad in container
 	// And the interstitial for times list
 	private AdManager mAdManager;
-	// Manages the back stack for Android back button presses
-	private StackController mSc;
 	
 	@Override
 	protected void onCreate(Bundle state) {
@@ -71,45 +69,22 @@ public class MainActivity extends AppCompatActivity
 		// Fire up the database helper
 		BusDatabaseHelper.createInstance(this);
 		
-		// Start managing fragment back stack
-		mSc = new StackController(this);
-		
 		// Activity stores state for all fragments
 		// Might be on a different page than the default
 		// If not, initialize the default tab fragments
 		if(state == null) {
-			mListFrag = new RoutesFragment();
-			mMapFrag = new MapFragment();
 			// First selected tab can be set automatically
 			// This flag permits that
 			mRestored = false;
 		}
 		// Restoring previous state
 		else {
-			// Need to restore back stack
-			mSc.restoreState(state.getBundle("StackController"));
-			// Restore tab 1 fragment, unless it was not
-			// instantiated last time
-			try {
-				mListFrag = (RoutesFragment)mSc.getFragment(0, 0);
-			}
-			catch(IndexOutOfBoundsException ex) {
-				mListFrag = new RoutesFragment();
-			}
-			// Restore tab 2 fragment, unless it was not
-			// instantiated last time
-			try {
-				mMapFrag = (MapFragment)mSc.getFragment(1, 0);
-			}
-			catch(IndexOutOfBoundsException ex) {
-				mMapFrag = new MapFragment();
-			}
 			// Automatically select default tab based on StackController
 			// later during SetupActionBar
 			mRestored = true;
 		}
-		// Setup top bar, title, home button
-		setupActionBar();
+
+		setupTabs();
 		
 		onFirstLaunch();
 	}
@@ -121,25 +96,11 @@ public class MainActivity extends AppCompatActivity
 		if(adsEnabled()) {
 			mAdManager.getNewAd();
 		}
-	}
 
-    /**
-     * At onResume there is a chance that fragments still have saved state
-     * which will cause an error when performing fragment transactions.
-     * Instead, perform them here. This issue seems to occur in API 19
-     */
-	@Override
-	protected void onResumeFragments() {
-		super.onResumeFragments();
-
-		// StackController takes over back stack management
-		mSc.start();
-
-        // Callback for location has told us to push the map now
-        if(mLocationPermissionAccepted) {
-            mSc.push(mMapFrag, 1);
-            mLocationPermissionAccepted = false;
-        }
+		// Callback for location has told us to push the map now
+		if(mLocationPermissionAccepted) {
+			mLocationPermissionAccepted = false;
+		}
 	}
 
 	protected void onPause() {
@@ -159,13 +120,9 @@ public class MainActivity extends AppCompatActivity
 	
 	/* Save state of the StackController
 	 * Such as the current tab and back stack */
-	public void onSaveInstanceState(Bundle state) {
-		Bundle mScState = new Bundle();
-		mSc.saveState(mScState);
-		state.putBundle("StackController", mScState);
-		mSc.stop();
-		super.onSaveInstanceState(state);
-	}
+//	public void onSaveInstanceState(Bundle state) {
+//		super.onSaveInstanceState(state);
+//	}
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -181,32 +138,58 @@ public class MainActivity extends AppCompatActivity
     }
 
     public AdManager getAdManager() { return mAdManager; }
-	public StackController getStackController() { return mSc; }
 	
 	// Checks if ads were disabled by purchase
 	public boolean adsEnabled() {
 		SharedPreferences prefs = getSharedPreferences(getString(R.string.iab_prefs), 0);
         return !prefs.getBoolean("removedAds", false);
 	}
+
+	/**
+	 *
+	 */
+	private void setupTabs() {
+		mViewPager = (ViewPager)findViewById(R.id.viewPager);
+		mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), this);
+		mViewPager.setAdapter(mViewPagerAdapter);
+
+		PagerTabStrip pagerTabStrip = (PagerTabStrip)findViewById(R.id.pagerTabStrip);
+		pagerTabStrip.setBackgroundColor(Color.BLACK);
+		pagerTabStrip.setTextColor(Color.WHITE);
+		pagerTabStrip.setTabIndicatorColor(Color.WHITE);
+	}
 	
 	/* Initialize the ActionBar */
-	private void setupActionBar() {
-		ActionBar actionBar = getSupportActionBar();
-		
-		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		ActionBar.Tab routes = actionBar.newTab().setText("Routes");
-		ActionBar.Tab more = actionBar.newTab().setText("Map");
-		
-		routes.setTabListener(this);
-		more.setTabListener(this);
-		actionBar.addTab(routes);
-		actionBar.addTab(more);
-		
-		// Set the tab if a restore from state
-		if(mRestored) {
-			mRestored = false;
-			getSupportActionBar().setSelectedNavigationItem(mSc.getStackNo());
-		}
+//	private void setupActionBar() {
+//		ActionBar actionBar = getActionBar();
+//
+//		ActionBar.Tab routes = actionBar.newTab().setText("Routes");
+//		ActionBar.Tab more = actionBar.newTab().setText("Map");
+//
+//		routes.setTabListener(this);
+//		more.setTabListener(this);
+//		actionBar.addTab(routes);
+//		actionBar.addTab(more);
+//
+//		// Set the tab if a restore from state
+//		if(mRestored) {
+//			mRestored = false;
+//			getActionBar().setSelectedNavigationItem(mSc.getStackNo());
+//		}
+//	}
+
+	/**
+	 *
+	 */
+	public void pushFragment(Fragment fragment, int position) {
+		mViewPagerAdapter.pushFragment(fragment, position);
+	}
+
+	/**
+	 *
+	 */
+	public void popBackStack(int position) {
+		mViewPagerAdapter.popBackStack(position);
 	}
 	
 	/* Displays new features dialog on new installs or when
@@ -243,46 +226,6 @@ public class MainActivity extends AppCompatActivity
 	        editor.commit();
 		}
 	}
-	
-	@Override
-	public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
-		// Do not select first tab initially when tabs
-		// added (during setupActionBar()) if StackController state restored
-		if(mRestored) {
-			return;
-		}
-		// StackController manages pushing/popping of tabs
-		switch(tab.getPosition()) {
-		case 0:
-			mSc.push(mListFrag, 0);
-			break;
-		case 1:
-            // Permissions check for API 23+
-            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
-                    PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[] { Manifest.permission.ACCESS_COARSE_LOCATION,
-                                android.Manifest.permission.ACCESS_FINE_LOCATION
-                        },
-                        LOCATION_PERMISSIONS_REQUEST_CODE
-                );
-            }
-            else {
-                mSc.push(mMapFrag, 1);
-            }
-			break;
-		}
-	}
-
-	@Override
-	public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
-		
-	}
-
-	@Override
-	public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
-		
-	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -299,28 +242,122 @@ public class MainActivity extends AppCompatActivity
 	/* Back button tells StackController to pop, unless all back stack
 	 * items have been popped, and then kills app instead
 	 */
-	public void onBackPressed() {
-		if(mSc.onBackPressed()) {
-			return;
-		}
-		else if(mSc.getStackCount() > 1) {
-			mSc.pop();
-		}
-		else {
-			super.onBackPressed();
-		}
-	}
+//	public void onBackPressed() {
+//		if(mSc.onBackPressed()) {
+//			return;
+//		}
+//		else if(mSc.getStackCount() > 1) {
+//			mSc.pop();
+//		}
+//		else {
+//			super.onBackPressed();
+//		}
+//	}
 	
 	/* Redirects hardware menu key button to each fragment that
 	 * wants it
 	 * (non-Javadoc)
 	 * @see android.app.Activity#onKeyUp(int, android.view.KeyEvent)
 	 */
-	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		boolean ret = false;
-		if(mSc.getActiveFragment() == mListFrag) {
-			ret = mListFrag.onKeyUp(keyCode, event);
+//	public boolean onKeyUp(int keyCode, KeyEvent event) {
+//		boolean ret = false;
+//		if(mSc.getActiveFragment() == mListFrag) {
+//			ret = mListFrag.onKeyUp(keyCode, event);
+//		}
+//		return ret || super.onKeyUp(keyCode, event);
+//	}
+
+	/**
+	 *
+	 */
+	private class ViewPagerAdapter extends FragmentPagerAdapter {
+		private static final int COUNT = 2;
+
+		private MainActivity mActivity;
+		private RoutesFragment mRoutesFragment;
+		private MapFragment mMapFragment;
+
+		public ViewPagerAdapter(FragmentManager fm, MainActivity activity) {
+			super(fm);
+			mActivity = activity;
 		}
-		return ret || super.onKeyUp(keyCode, event);
+
+		@Override
+		public Fragment getItem(int position) {
+			switch(position) {
+				case 0:
+					if(mRoutesFragment == null) {
+						mRoutesFragment = new RoutesFragment();
+					}
+					return mRoutesFragment;
+				default: // case 1
+					// Permissions check for API 23+
+					if(ContextCompat.checkSelfPermission(mActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
+							PackageManager.PERMISSION_GRANTED) {
+						ActivityCompat.requestPermissions(mActivity,
+								new String[] { Manifest.permission.ACCESS_COARSE_LOCATION,
+										android.Manifest.permission.ACCESS_FINE_LOCATION
+								},
+								LOCATION_PERMISSIONS_REQUEST_CODE
+						);
+						return new Fragment();
+					}
+					else {
+						if(mMapFragment == null) {
+							mMapFragment = new MapFragment();
+						}
+						return mMapFragment;
+					}
+			}
+		}
+
+		@Override
+		public int getCount() {
+			return COUNT;
+		}
+
+		@Override
+		public CharSequence getPageTitle(int position) {
+			switch(position) {
+				case 0:
+					return "Routes";
+				default: // case 1
+					return "Map";
+			}
+		}
+
+		/**
+		 *
+		 */
+		public void pushFragment(Fragment fragment, int position) {
+			FragmentTransaction ft = getFragmentManager(position).beginTransaction();
+			ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+					.add(R.id.RelativeLayout1, fragment)
+					.addToBackStack(null)
+					.commit();
+		}
+
+		/**
+		 *
+		 */
+		public void popBackStack(int position) {
+			getFragmentManager(position).popBackStack();
+		}
+
+		/**
+		 *
+		 */
+		private FragmentManager getFragmentManager(int position) {
+			FragmentManager fragmentManager;
+			switch(position) {
+				case 0:
+					fragmentManager = mRoutesFragment.getChildFragmentManager();
+					break;
+				default: // case 1
+					fragmentManager = mMapFragment.getChildFragmentManager();
+					break;
+			}
+			return fragmentManager;
+		}
 	}
 }

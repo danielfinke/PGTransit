@@ -4,13 +4,10 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -125,9 +122,9 @@ public class TimesFragment extends ListFragment
 	public void setWeekday(String weekday) { mWeekday = weekday; }
 	
 	private void setupActionBar() {
-		ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(Utils.getWeekdayString(mWeekday) + " Schedule");
-		actionBar.setDisplayHomeAsUpEnabled(true);
+//		ActionBar actionBar = getActivity().getActionBar();
+//		actionBar.setTitle(Utils.getWeekdayString(mWeekday) + " Schedule");
+//		actionBar.setDisplayHomeAsUpEnabled(true);
 	}
 	
 	// Initiate time slot loading from SQLite db
@@ -188,9 +185,9 @@ public class TimesFragment extends ListFragment
 		// Restores scroll position if state was restored
 		// and had triggered a data load, also updating
 		// the title of the activity (by day)
-		ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(mStop.getBus().getNumber() + " at " +
-				mStop.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
+//		ActionBar actionBar = getActivity().getActionBar();
+//		actionBar.setTitle(mStop.getBus().getNumber() + " at " +
+//				mStop.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
 		getListView().setSelectionFromTop(mScrollIndex, mScrollOffset);
 	}
 
