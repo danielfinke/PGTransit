@@ -4,6 +4,7 @@ import java.util.List;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -18,27 +19,13 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.finke.pgtransit.adapters.RoutesAdapter;
-import com.finke.pgtransit.extensions.Stackable;
 import com.finke.pgtransit.model.Bus;
 
 /* Displays a list of bus routes */
 public class RoutesFragment extends ListFragment
-    implements Stackable, LoaderManager.LoaderCallbacks<List<Bus>> {
-    
-    // Preserves scroll position through StackController
-    private int mScrollIndex;
-    private int mScrollOffset;
-    // True if content view has been created
-    // Prevents saving scroll position if not yet ready
-    private boolean mContentViewCreated;
-    
+    implements LoaderManager.LoaderCallbacks<List<Bus>> {
     // This is the Adapter being used to display the list's data
     private RoutesAdapter mAdapter;
-    
-    public RoutesFragment() {
-        mScrollIndex = 0;
-        mScrollOffset = 0;
-    }
     
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,64 +39,22 @@ public class RoutesFragment extends ListFragment
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.list_routes, container, false);
     }
-    
-    public void onViewCreated(View view, Bundle state) {
-        super.onViewCreated(view, state);
-        mContentViewCreated = true;
 
-        setupActionBar();
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
         loadRoutes();
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        mContentViewCreated = false;
-    }
-    
-    // StackController will tell Fragment to save state
-    public void saveState(Bundle state) {
-        int scrollIndex;
-        int scrollOffset;
-        if(mContentViewCreated) {
-            scrollIndex = getListView().getFirstVisiblePosition();
-            scrollOffset = getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop();
-        }
-        else {
-            scrollIndex = mScrollIndex;
-            scrollOffset = mScrollOffset;
-        }
-        state.putInt("scrollIndex", scrollIndex);
-        state.putInt("scrollOffset", scrollOffset);
-    }
-    
-    // StackController will request state restores
-    public void restoreState(Bundle state) {
-        mScrollIndex = state.getInt("scrollIndex");
-        mScrollOffset = state.getInt("scrollOffset");
-    }
-    
-    public boolean onBackPressed() {
-        return false;
-    }
-    
-    private void setupActionBar() {
-//        ActionBar actionBar = getActivity().getActionBar();
-//        actionBar.setTitle(R.string.routeListTitle);
-//        actionBar.setHomeButtonEnabled(false);
-//        actionBar.setDisplayHomeAsUpEnabled(false);
-    }
-    
     // Initiate bus route loading from SQLite db
     private void loadRoutes() {
         // Create an empty adapter we will use to display the loaded data.
         // We pass null for the cursor, then update it in onLoadFinished()
         mAdapter = new RoutesAdapter(getActivity());
         setListAdapter(mAdapter);
-        
-        // Prepare the loader.  Either re-connect with an existing one,
-        // or start a new one.
-        getLoaderManager().restartLoader(0, null, this).forceLoad();
+
+        getLoaderManager().initLoader(0, null, this);
     }
     
     @Override
@@ -151,6 +96,11 @@ public class RoutesFragment extends ListFragment
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
         return new AsyncTaskLoader<List<Bus>>(getActivity()) {
+            @Override
+            protected void onStartLoading() {
+                forceLoad();
+            }
+
             public List<Bus> loadInBackground() {
                 try {
                     return Bus.fetchFromDatabase();
@@ -168,9 +118,8 @@ public class RoutesFragment extends ListFragment
             mAdapter.setItems(result);
             mAdapter.notifyDataSetChanged();
         }
-        getListView().setSelectionFromTop(mScrollIndex, mScrollOffset);
     }
-    
+
     // Called when a previously created loader is reset, making the data unavailable
     public void onLoaderReset(Loader<List<Bus>> loader) {
         mAdapter.notifyDataSetInvalidated();
@@ -179,7 +128,7 @@ public class RoutesFragment extends ListFragment
     // Choosing a bus route takes you to the stops for that route
     public void onListItemClick(ListView i, View v, int position, long id) {
         StopsFragment frag = new StopsFragment();
-        frag.setBus(mAdapter.getBus(position));
+        frag.setBusId((int)id);
         ((MainActivity)getActivity()).pushFragment(frag, 0);
     }
 }

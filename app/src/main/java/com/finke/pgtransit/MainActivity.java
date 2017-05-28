@@ -1,6 +1,5 @@
 package com.finke.pgtransit;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -9,12 +8,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +17,7 @@ import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.finke.pgtransit.adapters.ViewPagerAdapter;
 import com.finke.pgtransit.database.BusDatabaseHelper;
 import com.finke.pgtransit.extensions.AdManager;
 import com.finke.pgtransit.extensions.AppRater;
@@ -150,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
 	 */
 	private void setupTabs() {
 		mViewPager = (ViewPager)findViewById(R.id.viewPager);
-		mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager(), this);
+		mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 		mViewPager.setAdapter(mViewPagerAdapter);
 
 		PagerTabStrip pagerTabStrip = (PagerTabStrip)findViewById(R.id.pagerTabStrip);
@@ -158,38 +154,30 @@ public class MainActivity extends AppCompatActivity {
 		pagerTabStrip.setTextColor(Color.WHITE);
 		pagerTabStrip.setTabIndicatorColor(Color.WHITE);
 	}
-	
-	/* Initialize the ActionBar */
-//	private void setupActionBar() {
-//		ActionBar actionBar = getActionBar();
-//
-//		ActionBar.Tab routes = actionBar.newTab().setText("Routes");
-//		ActionBar.Tab more = actionBar.newTab().setText("Map");
-//
-//		routes.setTabListener(this);
-//		more.setTabListener(this);
-//		actionBar.addTab(routes);
-//		actionBar.addTab(more);
-//
-//		// Set the tab if a restore from state
-//		if(mRestored) {
-//			mRestored = false;
-//			getActionBar().setSelectedNavigationItem(mSc.getStackNo());
-//		}
-//	}
 
 	/**
 	 *
 	 */
 	public void pushFragment(Fragment fragment, int position) {
-		mViewPagerAdapter.pushFragment(fragment, position);
+		Fragment pagerFragment = mViewPagerAdapter.getItem(position);
+		FragmentManager fm = pagerFragment.getChildFragmentManager();
+		fm.beginTransaction()
+				.setCustomAnimations(R.anim.slide_in_right,
+						R.anim.slide_out_left,
+						R.anim.slide_in_left,
+						R.anim.slide_out_right)
+				.addToBackStack(null)
+				.replace(R.id.container, fragment)
+				.commit();
 	}
 
 	/**
 	 *
 	 */
-	public void popBackStack(int position) {
-		mViewPagerAdapter.popBackStack(position);
+	public void popBackStack() {
+		Fragment pagerFragment = mViewPagerAdapter.getItem(mViewPager.getCurrentItem());
+		FragmentManager fm = pagerFragment.getChildFragmentManager();
+		fm.popBackStack(null, 0);
 	}
 	
 	/* Displays new features dialog on new installs or when
@@ -238,21 +226,21 @@ public class MainActivity extends AppCompatActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
-	/* Back button tells StackController to pop, unless all back stack
-	 * items have been popped, and then kills app instead
+
+	/**
+	 *
 	 */
-//	public void onBackPressed() {
-//		if(mSc.onBackPressed()) {
-//			return;
-//		}
-//		else if(mSc.getStackCount() > 1) {
-//			mSc.pop();
-//		}
-//		else {
-//			super.onBackPressed();
-//		}
-//	}
+	public void onBackPressed() {
+		Fragment pagerFragment = mViewPagerAdapter.getItem(mViewPager.getCurrentItem());
+		FragmentManager fm = pagerFragment.getChildFragmentManager();
+		if(fm.getBackStackEntryCount() > 0) {
+			popBackStack();
+		}
+		else {
+			super.onBackPressed();
+		}
+
+	}
 	
 	/* Redirects hardware menu key button to each fragment that
 	 * wants it
@@ -266,98 +254,4 @@ public class MainActivity extends AppCompatActivity {
 //		}
 //		return ret || super.onKeyUp(keyCode, event);
 //	}
-
-	/**
-	 *
-	 */
-	private class ViewPagerAdapter extends FragmentPagerAdapter {
-		private static final int COUNT = 2;
-
-		private MainActivity mActivity;
-		private RoutesFragment mRoutesFragment;
-		private MapFragment mMapFragment;
-
-		public ViewPagerAdapter(FragmentManager fm, MainActivity activity) {
-			super(fm);
-			mActivity = activity;
-		}
-
-		@Override
-		public Fragment getItem(int position) {
-			switch(position) {
-				case 0:
-					if(mRoutesFragment == null) {
-						mRoutesFragment = new RoutesFragment();
-					}
-					return mRoutesFragment;
-				default: // case 1
-					// Permissions check for API 23+
-					if(ContextCompat.checkSelfPermission(mActivity, android.Manifest.permission.ACCESS_COARSE_LOCATION) !=
-							PackageManager.PERMISSION_GRANTED) {
-						ActivityCompat.requestPermissions(mActivity,
-								new String[] { Manifest.permission.ACCESS_COARSE_LOCATION,
-										android.Manifest.permission.ACCESS_FINE_LOCATION
-								},
-								LOCATION_PERMISSIONS_REQUEST_CODE
-						);
-						return new Fragment();
-					}
-					else {
-						if(mMapFragment == null) {
-							mMapFragment = new MapFragment();
-						}
-						return mMapFragment;
-					}
-			}
-		}
-
-		@Override
-		public int getCount() {
-			return COUNT;
-		}
-
-		@Override
-		public CharSequence getPageTitle(int position) {
-			switch(position) {
-				case 0:
-					return "Routes";
-				default: // case 1
-					return "Map";
-			}
-		}
-
-		/**
-		 *
-		 */
-		public void pushFragment(Fragment fragment, int position) {
-			FragmentTransaction ft = getFragmentManager(position).beginTransaction();
-			ft.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
-					.add(R.id.RelativeLayout1, fragment)
-					.addToBackStack(null)
-					.commit();
-		}
-
-		/**
-		 *
-		 */
-		public void popBackStack(int position) {
-			getFragmentManager(position).popBackStack();
-		}
-
-		/**
-		 *
-		 */
-		private FragmentManager getFragmentManager(int position) {
-			FragmentManager fragmentManager;
-			switch(position) {
-				case 0:
-					fragmentManager = mRoutesFragment.getChildFragmentManager();
-					break;
-				default: // case 1
-					fragmentManager = mMapFragment.getChildFragmentManager();
-					break;
-			}
-			return fragmentManager;
-		}
-	}
 }

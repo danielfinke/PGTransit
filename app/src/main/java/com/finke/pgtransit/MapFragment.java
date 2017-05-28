@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
@@ -31,7 +30,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.finke.pgtransit.adapters.RoutesAdapter;
-import com.finke.pgtransit.extensions.Stackable;
 import com.finke.pgtransit.model.Bus;
 import com.finke.pgtransit.model.MapPoint;
 import com.finke.pgtransit.model.MinorStop;
@@ -57,7 +55,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
  * selection
  */
 public class MapFragment extends Fragment implements
-		Stackable, LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>, OnItemClickListener {
+		LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>, OnItemClickListener {
     private final static String MAP_DATA_BUNDLE_KEY = "bus_index";
 
 	// Map defaults position to center of PG when no routes selected
@@ -95,7 +93,9 @@ public class MapFragment extends Fragment implements
 	public void onCreate(Bundle state) {
 		super.onCreate(state);
 		mMapView = new MapView(getActivity());
-		mMapView.onCreate(state);
+
+		Bundle mapViewState = state != null ? state.getBundle("mapViewState") : null;
+		mMapView.onCreate(mapViewState);
 	}
 
 	@Override
@@ -193,21 +193,15 @@ public class MapFragment extends Fragment implements
 	}
 	
 	public void onSaveInstanceState(Bundle state) {
+		Bundle mapViewState = new Bundle(state);
+		mMapView.onSaveInstanceState(mapViewState);
+		state.putBundle("mapViewState", mapViewState);
 		super.onSaveInstanceState(state);
-		mMapView.onSaveInstanceState(state);
 	}
 	
 	public void onLowMemory() {
 		super.onLowMemory();
 		mMapView.onLowMemory();
-	}
-	
-	public void saveState(Bundle state) {
-		
-	}
-	
-	public void restoreState(Bundle state) {
-		
 	}
 	
 	public boolean onBackPressed() {
