@@ -3,18 +3,20 @@ package com.finke.pgtransit;
 import java.util.List;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.finke.pgtransit.ChangeDayDialogFragment.ChangeDayDialogListener;
 import com.finke.pgtransit.adapters.TimesAdapter;
-import com.finke.pgtransit.extensions.Stackable;
 import com.finke.pgtransit.model.Stop;
 import com.finke.pgtransit.model.TimeInterface;
 import com.finke.pgtransit.model.TimeSlot;
@@ -22,27 +24,21 @@ import com.finke.pgtransit.model.TimeSlot;
 /* Displays a list of times given a bus stop location, as well as
  * any important notes on the time slot
  */
-public class TimesFragment extends ListFragment
-	implements Stackable, LoaderManager.LoaderCallbacks<List<TimeInterface>>,
-	ChangeDayDialogListener {
-	
-	// Preserves scroll position through StackController
-	private int mScrollIndex;
-	private int mScrollOffset;
-	// True if content view has been created
-	// Prevents saving scroll position if not yet ready
-	private boolean mContentViewCreated;
+public class TimesFragment extends ListFragment implements
+        LoaderManager.LoaderCallbacks<List<TimeInterface>>, ChangeDayDialogListener {
+    private static final String STOP_ID_KEY = "stopId";
+    private static final String WEEKDAY_KEY = "weekday";
+
 	// The weekday for which arrival times are being shown
 	private String mWeekday;
 	// Selected stop model, whose visit times are being shown
+    private int mStopId;
 	private Stop mStop;
 	private TimesAdapter mAdapter;
 	// Instance of dialog for changing currently viewed weekday times
 	private ChangeDayDialogFragment mChgDayDialog;
 	
 	public TimesFragment() {
-		mScrollIndex = 0;
-		mScrollOffset = 0;
 		// On view, the current weekday/period is chosen
 		mWeekday = Utils.getCurrentWeekday();
 		mStop = null;
@@ -51,6 +47,11 @@ public class TimesFragment extends ListFragment
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+		if(savedInstanceState != null) {
+			mStopId = savedInstanceState.getInt(STOP_ID_KEY);
+			mWeekday = savedInstanceState.getString(WEEKDAY_KEY);
+		}
 		
 		setHasOptionsMenu(true);
 	}
@@ -61,90 +62,48 @@ public class TimesFragment extends ListFragment
         return inflater.inflate(R.layout.list_time, container, false);
     }
 
-	@Override
-	public void onViewCreated(View view, Bundle savedInstanceState) {
-		super.onViewCreated(view, savedInstanceState);
-		mContentViewCreated = true;
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-		loadTimes();
-	}
+        loadTimes();
+    }
 
-	public void onResume() {
-		super.onResume();
-		
-		setupActionBar();
-	}
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
-	@Override
-	public void onDestroyView() {
-		super.onDestroyView();
-		mContentViewCreated = false;
-	}
-
-	// StackController will tell Fragment to save state
-	// String weekday value is preserved
-	// Pseudo saves stop instance by storing its PK in the bundle
-	public void saveState(Bundle state) {
-        int scrollIndex;
-        int scrollOffset;
-		if(mContentViewCreated) {
-            scrollIndex = getListView().getFirstVisiblePosition();
-            scrollOffset = getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop();
-		}
-        else {
-            scrollIndex = mScrollIndex;
-            scrollOffset = mScrollOffset;
-        }
-        state.putInt("scrollIndex", scrollIndex);
-        state.putInt("scrollOffset", scrollOffset);
-		state.putString("weekday", mWeekday);
-		state.putString("stop", mStop.getId());
-	}
-	
-	// StackController will request state restores
-	// Also restores the Stop instance having stored its PK
-	public void restoreState(Bundle state) {
-		mScrollIndex = state.getInt("scrollIndex");
-		mScrollOffset = state.getInt("scrollOffset");
-		mWeekday = state.getString("weekday");
-		try {
-			mStop = Stop.fetchFromDatabase(state.getString("stop"));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public boolean onBackPressed() {
-		return false;
-	}
+        outState.putInt(STOP_ID_KEY, mStopId);
+        outState.putString(WEEKDAY_KEY, mWeekday);
+    }
 	
 	public void setStop(Stop s) { mStop = s; }
 	public void setWeekday(String weekday) { mWeekday = weekday; }
-	
-	private void setupActionBar() {
-//		ActionBar actionBar = getActivity().getActionBar();
-//		actionBar.setTitle(Utils.getWeekdayString(mWeekday) + " Schedule");
-//		actionBar.setDisplayHomeAsUpEnabled(true);
-	}
+
+    private void setupActionBar() {
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+
+        if(actionBar != null) {
+            if(mBus == null) {
+                new StopsFragment.BusLoader().execute(mBusId);
+            }
+            else {
+                actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" +
+                        Utils.getWeekdayString(mWeekday) + ")");
+            }
+
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+    }
 	
 	// Initiate time slot loading from SQLite db
 	private void loadTimes() {
-//		// Create an empty adapter we will use to display the loaded data.
-//		// We pass null for the cursor, then update it in onLoadFinished()
 		mAdapter = new TimesAdapter(getActivity());
 		setListAdapter(mAdapter);
-		
-		// Prepare the loader.  Either re-connect with an existing one,
-		// or start a new one.
-		getLoaderManager().restartLoader(0, null, this).forceLoad();
+
+		getLoaderManager().initLoader(0, null, this);
 	}
-	
-//	@Override
-//	public void onCreateOptionsMenu(
-//	      Menu menu, MenuInflater inflater) {
-//	   inflater.inflate(R.menu.menu_times, menu);
-//	}
-//	
+
 //	@Override
 //	public boolean onOptionsItemSelected(MenuItem item) {
 //		switch (item.getItemId()) {
@@ -164,6 +123,11 @@ public class TimesFragment extends ListFragment
 	@Override
 	public AsyncTaskLoader<List<TimeInterface>> onCreateLoader(int arg0, Bundle arg1) {
 		return new AsyncTaskLoader<List<TimeInterface>>(getActivity()) {
+            @Override
+            protected void onStartLoading() {
+                forceLoad();
+            }
+
 			public List<TimeInterface> loadInBackground() {
 				try {
 					return TimeSlot.fetchFromDatabase(mStop.getId());
@@ -182,13 +146,6 @@ public class TimesFragment extends ListFragment
 			mAdapter.setTimes(result);
 			mAdapter.notifyDataSetChanged();
 		}
-		// Restores scroll position if state was restored
-		// and had triggered a data load, also updating
-		// the title of the activity (by day)
-//		ActionBar actionBar = getActivity().getActionBar();
-//		actionBar.setTitle(mStop.getBus().getNumber() + " at " +
-//				mStop.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
-		getListView().setSelectionFromTop(mScrollIndex, mScrollOffset);
 	}
 
 	@Override
@@ -199,7 +156,8 @@ public class TimesFragment extends ListFragment
 	// Changes the viewed day, so time slots are fetched for another
 	public void onDialogPositiveClick(DialogFragment dialog) {
 		mWeekday = ((ChangeDayDialogFragment)dialog).getWeekday();
-		getLoaderManager().restartLoader(0, null, this).forceLoad();
+		getLoaderManager().restartLoader(0, null, this);
+        setupActionBar();
 	}
 
 	public void onDialogNegativeClick(DialogFragment dialog) {
