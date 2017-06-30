@@ -9,7 +9,8 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.view.KeyEvent;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -44,6 +45,7 @@ public class RoutesFragment extends ListFragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        setupActionBar();
         loadRoutes();
     }
 
@@ -55,6 +57,11 @@ public class RoutesFragment extends ListFragment
         setListAdapter(mAdapter);
 
         getLoaderManager().initLoader(0, null, this);
+    }
+
+    private void setupActionBar() {
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(false);
     }
     
     @Override
