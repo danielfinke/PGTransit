@@ -1,13 +1,6 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:compat="http://schemas.android.com/apk/res-auto">
-    <item
-        android:id="@+id/overflowMenu"
-        android:title="@string/actionMenu"
-        android:icon="@drawable/ic_action_overflow"
-        compat:showAsAction="always">
-        <menu>
-            <item android:id="@+id/viewBasicMap" android:title="@string/menuItemBasicMap"/>
-            <item android:id="@+id/viewMore" android:title="@string/menuItemMore"/>
-        </menu>
-    </item>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/viewBasicMap" android:title="@string/menuItemBasicMap" />
+    <item android:id="@+id/viewMore" android:title="@string/menuItemMore" />
+
 </menu>

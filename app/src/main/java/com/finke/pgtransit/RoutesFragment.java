@@ -82,14 +82,14 @@ public class RoutesFragment extends ListFragment
     /* Activity delegates onKeyUp(...) to this fragment to
      * allow hardware menu button to open 3dot menu
      */
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_MENU) {
-            View v = getActivity().findViewById(R.id.overflowMenu);
-            v.performClick();
-            return true;
-        }
-        return false;
-    }
+//    public boolean onKeyUp(int keyCode, KeyEvent event) {
+//        if(keyCode == KeyEvent.KEYCODE_MENU) {
+//            View v = getActivity().findViewById(R.id.overflowMenu);
+//            v.performClick();
+//            return true;
+//        }
+//        return false;
+//    }
     
     // Called when a new Loader needs to be created
     public AsyncTaskLoader<List<Bus>> onCreateLoader(int id, Bundle args) {
