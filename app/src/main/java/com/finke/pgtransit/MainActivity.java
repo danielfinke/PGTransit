@@ -26,8 +26,7 @@ import com.finke.pgtransit.extensions.AppRater;
  * Schedules and Maps tabs */
 public class MainActivity extends AppCompatActivity {
     private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
-	
-	private boolean mRestored;
+
 	// Container for Google AdMob advertisements
 	private LinearLayout mAdCont;
 	// ViewPager for tabs
@@ -64,21 +63,6 @@ public class MainActivity extends AppCompatActivity {
 		
 		// Fire up the database helper
 		BusDatabaseHelper.createInstance(this);
-		
-		// Activity stores state for all fragments
-		// Might be on a different page than the default
-		// If not, initialize the default tab fragments
-		if(state == null) {
-			// First selected tab can be set automatically
-			// This flag permits that
-			mRestored = false;
-		}
-		// Restoring previous state
-		else {
-			// Automatically select default tab based on StackController
-			// later during SetupActionBar
-			mRestored = true;
-		}
 
 		setupTabs();
 		
@@ -113,12 +97,6 @@ public class MainActivity extends AppCompatActivity {
 		BusDatabaseHelper.destroyInstance();
 		super.onDestroy();
 	}
-	
-	/* Save state of the StackController
-	 * Such as the current tab and back stack */
-//	public void onSaveInstanceState(Bundle state) {
-//		super.onSaveInstanceState(state);
-//	}
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
