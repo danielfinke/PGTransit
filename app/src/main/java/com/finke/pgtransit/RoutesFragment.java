@@ -61,7 +61,11 @@ public class RoutesFragment extends ListFragment
 
     private void setupActionBar() {
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(false);
+
+        if(actionBar != null) {
+            actionBar.setTitle(R.string.app_name);
+            actionBar.setDisplayHomeAsUpEnabled(false);
+        }
     }
     
     @Override
