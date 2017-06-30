@@ -185,7 +185,7 @@ public class StopsFragment extends ListFragment implements
 		TimesFragment frag = new TimesFragment();
 		frag.setStop(mAdapter.getStop(position));
 		frag.setWeekday(mWeekday);
-//		((MainActivity)getActivity()).getStackController().push(frag);
+        ((MainActivity)getActivity()).pushFragment(frag, 0);
 	}
 
     /**
