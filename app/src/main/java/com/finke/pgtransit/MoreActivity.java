@@ -4,8 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -15,6 +13,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.Telephony;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,7 +43,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
  * Includes About, Share to social media/by email,
  * pay to remove ads, rate app, and report bugs
  */
-public class MoreActivity extends Activity {
+public class MoreActivity extends AppCompatActivity {
 	
 	private int mScrollOffset;
 	// Auth status for Facebook SDK
@@ -366,7 +366,7 @@ public class MoreActivity extends Activity {
 		
 		mUiHelper.onResume();
 		
-		ActionBar actionBar = getActionBar();
+		ActionBar actionBar = getSupportActionBar();
 		actionBar.setTitle("More");
 		actionBar.setHomeButtonEnabled(true);
 		actionBar.setDisplayHomeAsUpEnabled(true);
