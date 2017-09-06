@@ -1,15 +1,15 @@
 package com.finke.pgtransit;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
 
 /* Displays JPG full screen image of map, supplied by
  * PG Transit website
  */
-public class MapImageActivity extends Activity {
+public class MapImageActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -27,11 +27,11 @@ public class MapImageActivity extends Activity {
 	}
 	
 	private void hideActionBar() {
-		ActionBar actionBar = getActionBar();
+		ActionBar actionBar = getSupportActionBar();
 		actionBar.hide();
 	}
 	private void showActionBar() {
-		ActionBar actionBar = getActionBar();
+		ActionBar actionBar = getSupportActionBar();
 		actionBar.show();
 	}
 	
