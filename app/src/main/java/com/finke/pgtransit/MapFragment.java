@@ -56,6 +56,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
  */
 public class MapFragment extends Fragment implements
 		LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>, OnItemClickListener {
+
+    private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
     private final static String MAP_DATA_BUNDLE_KEY = "bus_index";
 
 	// Map defaults position to center of PG when no routes selected
@@ -101,7 +103,6 @@ public class MapFragment extends Fragment implements
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
-		Activity activity = getActivity();
 		// Inflate the layout for this fragment
 		DrawerLayout v = (DrawerLayout) inflater.inflate(R.layout.map, container, false);
 		RelativeLayout frame = (RelativeLayout) v.findViewById(R.id.mapFrame);
@@ -120,15 +121,10 @@ public class MapFragment extends Fragment implements
 		});
 
 		// Needs to call MapsInitializer before doing any CameraUpdateFactory calls
-		MapsInitializer.initialize(activity);
+		MapsInitializer.initialize(getActivity());
 
 		// Gets to GoogleMap from the MapView and does initialization stuff
 		mMap = mMapView.getMap();
-        // Only set location enabled if permission is granted
-		if (ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-				ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        }
 		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LON), 12));
         mMap.setInfoWindowAdapter(new MinorStopInfoWindowAdapter());
 		
@@ -146,6 +142,18 @@ public class MapFragment extends Fragment implements
 		super.onResume();
 		
 		mMapView.onResume();
+
+        // Only set location enabled if permission is granted
+        Activity activity = getActivity();
+        if(ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+        }
+        else {
+            ActivityCompat.requestPermissions(activity,
+                    new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION },
+                    LOCATION_PERMISSIONS_REQUEST_CODE);
+        }
         
         // Show times of each stop
         mMap.setOnMarkerClickListener(new OnMarkerClickListener() {

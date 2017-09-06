@@ -4,10 +4,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.PagerTabStrip;
@@ -25,16 +23,12 @@ import com.finke.pgtransit.extensions.AppRater;
 /* Handles all activity life cycle/UI interactions for the
  * Schedules and Maps tabs */
 public class MainActivity extends AppCompatActivity {
-    private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
 
 	// Container for Google AdMob advertisements
 	private LinearLayout mAdCont;
 	// ViewPager for tabs
 	private ViewPager mViewPager;
 	private ViewPagerAdapter mViewPagerAdapter;
-    // Used to automatically push map fragment after resume when location
-    // permission is accepted
-    private boolean mLocationPermissionAccepted = false;
 	
 	// Handles displaying banner ad in container
 	// And the interstitial for times list
@@ -76,11 +70,6 @@ public class MainActivity extends AppCompatActivity {
 		if(adsEnabled()) {
 			mAdManager.getNewAd();
 		}
-
-		// Callback for location has told us to push the map now
-		if(mLocationPermissionAccepted) {
-			mLocationPermissionAccepted = false;
-		}
 	}
 
 	protected void onPause() {
@@ -97,19 +86,6 @@ public class MainActivity extends AppCompatActivity {
 		BusDatabaseHelper.destroyInstance();
 		super.onDestroy();
 	}
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch(requestCode) {
-            case LOCATION_PERMISSIONS_REQUEST_CODE:
-                if(grantResults.length == 2 &&
-                        grantResults[0] == PackageManager.PERMISSION_GRANTED &&
-                        grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-                    mLocationPermissionAccepted = true;
-                }
-        }
-    }
 
     public AdManager getAdManager() { return mAdManager; }
 	
