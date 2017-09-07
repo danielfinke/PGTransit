@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -145,8 +146,12 @@ public class MainActivity extends AppCompatActivity {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			TextView textView = new TextView(this);
 			textView.setText(R.string.you_can_now_remove_ads);
+			int padding = 10;
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+				padding = 24;
+			}
 			float scale = getResources().getDisplayMetrics().density;
-			int dpAsPixels = (int) (10*scale + 0.5f);
+			int dpAsPixels = (int) (padding*scale + 0.5f);
 			textView.setPadding(dpAsPixels, dpAsPixels, dpAsPixels, dpAsPixels);
 			textView.setBackgroundColor(Color.WHITE);
 			textView.setTextColor(Color.BLACK);
