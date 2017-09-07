@@ -24,7 +24,7 @@ import com.finke.pgtransit.model.Bus;
 
 /* Displays a list of bus routes */
 public class RoutesFragment extends ListFragment
-    implements LoaderManager.LoaderCallbacks<List<Bus>> {
+    implements LoaderManager.LoaderCallbacks<AsyncTaskResult<List<Bus>>> {
     // This is the Adapter being used to display the list's data
     private RoutesAdapter mAdapter;
     
@@ -103,36 +103,41 @@ public class RoutesFragment extends ListFragment
 //    }
     
     // Called when a new Loader needs to be created
-    public AsyncTaskLoader<List<Bus>> onCreateLoader(int id, Bundle args) {
+    public AsyncTaskLoader<AsyncTaskResult<List<Bus>>> onCreateLoader(int id, Bundle args) {
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        return new AsyncTaskLoader<List<Bus>>(getActivity()) {
+        return new AsyncTaskLoader<AsyncTaskResult<List<Bus>>>(getActivity()) {
             @Override
             protected void onStartLoading() {
                 forceLoad();
             }
 
-            public List<Bus> loadInBackground() {
+            public AsyncTaskResult<List<Bus>> loadInBackground() {
                 try {
-                    return Bus.fetchFromDatabase();
+                    return new AsyncTaskResult<>(Bus.fetchFromDatabase());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return null;
+                    AsyncTaskResult<List<Bus>> result = new AsyncTaskResult<>(null);
+                    result.setException(e);
+                    return result;
                 }
             }
         };
     }
     
     // Called when a previously created loader has finished loading
-    public void onLoadFinished(Loader<List<Bus>> loader, List<Bus> result) {
-        if(result != null) {
-            mAdapter.setItems(result);
+    public void onLoadFinished(Loader<AsyncTaskResult<List<Bus>>> loader, AsyncTaskResult<List<Bus>> result) {
+        if(!result.hasException()) {
+            mAdapter.setItems(result.getData());
             mAdapter.notifyDataSetChanged();
+        }
+        else {
+            getLoaderManager().restartLoader(loader.getId(), null, this);
         }
     }
 
     // Called when a previously created loader is reset, making the data unavailable
-    public void onLoaderReset(Loader<List<Bus>> loader) {
+    public void onLoaderReset(Loader<AsyncTaskResult<List<Bus>>> loader) {
         mAdapter.notifyDataSetInvalidated();
     }
     
