@@ -64,6 +64,7 @@ public class RoutesFragment extends ListFragment
 
         if(actionBar != null) {
             actionBar.setTitle(R.string.app_name);
+            actionBar.setSubtitle("");
             actionBar.setDisplayHomeAsUpEnabled(false);
         }
     }

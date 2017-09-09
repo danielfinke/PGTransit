@@ -91,6 +91,8 @@ public class StopsFragment extends ListFragment implements
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
 
         if(actionBar != null) {
+            actionBar.setSubtitle("");
+
             if(mBus == null) {
                 new BusLoader(this).execute(mBusId);
             }
