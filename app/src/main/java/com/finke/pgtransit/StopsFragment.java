@@ -2,7 +2,6 @@ package com.finke.pgtransit;
 
 import java.util.List;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -22,12 +21,15 @@ import android.widget.ListView;
 
 import com.finke.pgtransit.ChangeDayDialogFragment.ChangeDayDialogListener;
 import com.finke.pgtransit.adapters.StopsAdapter;
+import com.finke.pgtransit.loader.BusLoader;
 import com.finke.pgtransit.model.Bus;
 import com.finke.pgtransit.model.Stop;
 
 /* Displays a list of stops for a bus route */
 public class StopsFragment extends ListFragment implements
-		LoaderManager.LoaderCallbacks<List<Stop>>, ChangeDayDialogListener {
+		BusLoader.Callbacks,
+		LoaderManager.LoaderCallbacks<List<Stop>>,
+		ChangeDayDialogListener {
 	private static final String BUS_ID_KEY = "busId";
 	private static final String WEEKDAY_KEY = "weekday";
 
@@ -90,7 +92,7 @@ public class StopsFragment extends ListFragment implements
 
         if(actionBar != null) {
             if(mBus == null) {
-                new BusLoader().execute(mBusId);
+                new BusLoader(this).execute(mBusId);
             }
             else {
                 actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" +
@@ -127,6 +129,12 @@ public class StopsFragment extends ListFragment implements
 			break;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onBusLoaded(Bus bus) {
+		mBus = bus;
+		setupActionBar();
 	}
 
 	// Fetches from SQLite database in separate thread
@@ -187,30 +195,4 @@ public class StopsFragment extends ListFragment implements
 		frag.setWeekday(mWeekday);
         ((MainActivity)getActivity()).pushFragment(frag, 0);
 	}
-
-    /**
-     *
-     */
-	private class BusLoader extends AsyncTask<Integer, Void, Bus> {
-
-        @Override
-        protected Bus doInBackground(Integer... params) {
-            try {
-                return Bus.fetchFromDatabase(params[0]);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Bus bus) {
-            if(bus != null) {
-                mBus = bus;
-                setupActionBar();
-            }
-        }
-
-    }
-
 }
