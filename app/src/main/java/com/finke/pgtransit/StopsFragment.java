@@ -110,11 +110,11 @@ public class StopsFragment extends ListFragment implements
 
 		getLoaderManager().initLoader(0, null, this);
 	}
-	
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-	   inflater.inflate(R.menu.menu_times, menu);
-	}
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_times, menu);
+    }
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
