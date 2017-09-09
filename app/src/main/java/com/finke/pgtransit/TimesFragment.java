@@ -12,11 +12,17 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.finke.pgtransit.ChangeDayDialogFragment.ChangeDayDialogListener;
 import com.finke.pgtransit.adapters.TimesAdapter;
+import com.finke.pgtransit.loader.BusLoader;
+import com.finke.pgtransit.loader.StopLoader;
+import com.finke.pgtransit.model.Bus;
 import com.finke.pgtransit.model.Stop;
 import com.finke.pgtransit.model.TimeInterface;
 import com.finke.pgtransit.model.TimeSlot;
@@ -25,15 +31,22 @@ import com.finke.pgtransit.model.TimeSlot;
  * any important notes on the time slot
  */
 public class TimesFragment extends ListFragment implements
-        LoaderManager.LoaderCallbacks<List<TimeInterface>>, ChangeDayDialogListener {
+        BusLoader.Callbacks,
+        StopLoader.Callbacks,
+        LoaderManager.LoaderCallbacks<List<TimeInterface>>,
+        ChangeDayDialogListener {
+    private static final String BUS_ID_KEY = "busId";
     private static final String STOP_ID_KEY = "stopId";
     private static final String WEEKDAY_KEY = "weekday";
 
+	// Selected bus, whose stop is being displayed
+	private int mBusId;
+	private Bus mBus;
+	// Selected stop model, whose visit times are being shown
+	private String mStopId;
+	private Stop mStop;
 	// The weekday for which arrival times are being shown
 	private String mWeekday;
-	// Selected stop model, whose visit times are being shown
-    private int mStopId;
-	private Stop mStop;
 	private TimesAdapter mAdapter;
 	// Instance of dialog for changing currently viewed weekday times
 	private ChangeDayDialogFragment mChgDayDialog;
@@ -41,18 +54,17 @@ public class TimesFragment extends ListFragment implements
 	public TimesFragment() {
 		// On view, the current weekday/period is chosen
 		mWeekday = Utils.getCurrentWeekday();
-		mStop = null;
-		mChgDayDialog = null;
 	}
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		if(savedInstanceState != null) {
-			mStopId = savedInstanceState.getInt(STOP_ID_KEY);
+			mBusId = savedInstanceState.getInt(BUS_ID_KEY);
+			mStopId = savedInstanceState.getString(STOP_ID_KEY);
 			mWeekday = savedInstanceState.getString(WEEKDAY_KEY);
 		}
-		
+
 		setHasOptionsMenu(true);
 	}
 
@@ -66,6 +78,7 @@ public class TimesFragment extends ListFragment implements
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        setupActionBar();
         loadTimes();
     }
 
@@ -73,23 +86,34 @@ public class TimesFragment extends ListFragment implements
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putInt(STOP_ID_KEY, mStopId);
+        outState.putInt(BUS_ID_KEY, mBusId);
+        outState.putString(STOP_ID_KEY, mStopId);
         outState.putString(WEEKDAY_KEY, mWeekday);
     }
-	
-	public void setStop(Stop s) { mStop = s; }
-	public void setWeekday(String weekday) { mWeekday = weekday; }
+
+    public void setBusId(int busId) {
+        mBusId = busId;
+    }
+
+    public void setStopId(String stopId) {
+        mStopId = stopId;
+    }
+
+    public void setWeekday(String weekday) {
+        mWeekday = weekday;
+    }
 
     private void setupActionBar() {
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
 
         if(actionBar != null) {
             if(mBus == null) {
-                new StopsFragment.BusLoader().execute(mBusId);
+                new BusLoader(this).execute(mBusId);
             }
-            else {
+            else if(mStop != null) {
                 actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" +
                         Utils.getWeekdayString(mWeekday) + ")");
+                actionBar.setSubtitle(mStop.getName());
             }
 
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -104,20 +128,37 @@ public class TimesFragment extends ListFragment implements
 		getLoaderManager().initLoader(0, null, this);
 	}
 
-//	@Override
-//	public boolean onOptionsItemSelected(MenuItem item) {
-//		switch (item.getItemId()) {
-//		// Opens the dialog for changing viewed day of week
-//		case R.id.changeDayMenuItem:
-//			mChgDayDialog = new ChangeDayDialogFragment();
-//			mChgDayDialog.setWeekday(mWeekday);
-//			// Makes the dialog handler this
-//			mChgDayDialog.setListener(this);
-//			mChgDayDialog.show(getFragmentManager(), null);
-//			break;
-//		}
-//		return super.onOptionsItemSelected(item);
-//	}
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_times, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // Opens the dialog for changing viewed day of week
+            case R.id.changeDayMenuItem:
+                mChgDayDialog = new ChangeDayDialogFragment();
+                mChgDayDialog.setWeekday(mWeekday);
+                // Makes the dialog handler this
+                mChgDayDialog.setListener(this);
+                mChgDayDialog.show(getFragmentManager(), null);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBusLoaded(Bus bus) {
+        mBus = bus;
+        new StopLoader(this).execute(mStopId);
+    }
+
+    @Override
+    public void onStopLoaded(Stop stop) {
+        mStop = stop;
+        setupActionBar();
+    }
 
 	// Fetches from SQLite database in separate thread
 	@Override
@@ -130,7 +171,7 @@ public class TimesFragment extends ListFragment implements
 
 			public List<TimeInterface> loadInBackground() {
 				try {
-					return TimeSlot.fetchFromDatabase(mStop.getId());
+					return TimeSlot.fetchFromDatabase(mStopId);
 				} catch (Exception e) {
 					e.printStackTrace();
 					return null;

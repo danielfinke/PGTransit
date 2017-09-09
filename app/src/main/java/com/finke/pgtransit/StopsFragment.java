@@ -191,7 +191,8 @@ public class StopsFragment extends ListFragment implements
 		// Behind ad (if applicable), push the times fragment for the
 		// chosen stop
 		TimesFragment frag = new TimesFragment();
-		frag.setStop(mAdapter.getStop(position));
+		frag.setBusId(mBusId);
+		frag.setStopId(mAdapter.getStop(position).getId());
 		frag.setWeekday(mWeekday);
         ((MainActivity)getActivity()).pushFragment(frag, 0);
 	}
