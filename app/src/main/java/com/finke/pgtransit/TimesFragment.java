@@ -4,7 +4,6 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -12,13 +11,9 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.finke.pgtransit.ChangeDayDialogFragment.ChangeDayDialogListener;
 import com.finke.pgtransit.adapters.TimesAdapter;
 import com.finke.pgtransit.loader.BusLoader;
 import com.finke.pgtransit.loader.StopLoader;
@@ -33,8 +28,7 @@ import com.finke.pgtransit.model.TimeSlot;
 public class TimesFragment extends ListFragment implements
         BusLoader.Callbacks,
         StopLoader.Callbacks,
-        LoaderManager.LoaderCallbacks<List<TimeInterface>>,
-        ChangeDayDialogListener {
+        LoaderManager.LoaderCallbacks<List<TimeInterface>> {
     private static final String BUS_ID_KEY = "busId";
     private static final String STOP_ID_KEY = "stopId";
     private static final String WEEKDAY_KEY = "weekday";
@@ -48,8 +42,6 @@ public class TimesFragment extends ListFragment implements
 	// The weekday for which arrival times are being shown
 	private String mWeekday;
 	private TimesAdapter mAdapter;
-	// Instance of dialog for changing currently viewed weekday times
-	private ChangeDayDialogFragment mChgDayDialog;
 	
 	public TimesFragment() {
 		// On view, the current weekday/period is chosen
@@ -64,8 +56,6 @@ public class TimesFragment extends ListFragment implements
 			mStopId = savedInstanceState.getString(STOP_ID_KEY);
 			mWeekday = savedInstanceState.getString(WEEKDAY_KEY);
 		}
-
-		setHasOptionsMenu(true);
 	}
 
 	@Override
@@ -129,26 +119,6 @@ public class TimesFragment extends ListFragment implements
 	}
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_times, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            // Opens the dialog for changing viewed day of week
-            case R.id.changeDayMenuItem:
-                mChgDayDialog = new ChangeDayDialogFragment();
-                mChgDayDialog.setWeekday(mWeekday);
-                // Makes the dialog handler this
-                mChgDayDialog.setListener(this);
-                mChgDayDialog.show(getFragmentManager(), null);
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public void onBusLoaded(Bus bus) {
         mBus = bus;
         new StopLoader(this).execute(mStopId);
@@ -192,16 +162,5 @@ public class TimesFragment extends ListFragment implements
 	@Override
 	public void onLoaderReset(Loader<List<TimeInterface>> arg0) {
 		mAdapter.notifyDataSetInvalidated();
-	}
-
-	// Changes the viewed day, so time slots are fetched for another
-	public void onDialogPositiveClick(DialogFragment dialog) {
-		mWeekday = ((ChangeDayDialogFragment)dialog).getWeekday();
-		getLoaderManager().restartLoader(0, null, this);
-        setupActionBar();
-	}
-
-	public void onDialogNegativeClick(DialogFragment dialog) {
-		// Do nothing
 	}
 }
