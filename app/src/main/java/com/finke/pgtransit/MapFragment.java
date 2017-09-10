@@ -116,7 +116,7 @@ public class MapFragment extends Fragment implements
 			// Pop out the sidebar
 			@Override
 			public void onClick(View v) {
-				mDrawer.openDrawer(Gravity.RIGHT);
+				mDrawer.openDrawer(Gravity.END);
 			}
 		});
 
@@ -213,8 +213,8 @@ public class MapFragment extends Fragment implements
 	}
 	
 	public boolean onBackPressed() {
-		if(mDrawer.isDrawerOpen(Gravity.RIGHT)) {
-			mDrawer.closeDrawer(Gravity.RIGHT);
+		if(mDrawer.isDrawerOpen(Gravity.END)) {
+			mDrawer.closeDrawer(Gravity.END);
 			return true;
 		}
 		return false;
