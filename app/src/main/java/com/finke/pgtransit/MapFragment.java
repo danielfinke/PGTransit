@@ -301,7 +301,7 @@ public class MapFragment extends Fragment implements
 				mRouteShowing = new boolean[result.size()];
 				mMinorStops = new ArrayList<>();
 				mMinorStopTimes = new ArrayList<>();
-				mMarkers = new ArrayList<ArrayList<Marker>>();
+				mMarkers = new ArrayList<>();
 				mPolylines = new ArrayList<>();
 				for(int i = 0; i < result.size(); i++) {
 					mMinorStops.add(new ArrayList<MinorStop>());
@@ -327,7 +327,7 @@ public class MapFragment extends Fragment implements
 		// Prepare the loader.  Either re-connect with an existing one,
 		// or start a new one.
 		RouteLoadTask task = new RouteLoadTask();
-		task.execute(new Void[] { });
+		task.execute();
 	}
 	
 	private void setupActionBar() {
@@ -447,11 +447,11 @@ public class MapFragment extends Fragment implements
      * @author Daniel Finke
      * @since 2016-09-05
      */
-    public class AsyncTaskResult {
+    class AsyncTaskResult {
         public int color;
-        public List<MapPoint> mapPoints;
-        public List<MinorStop> minorStops;
-        public List<MinorStopTime> minorStopTimes;
+        List<MapPoint> mapPoints;
+        List<MinorStop> minorStops;
+        List<MinorStopTime> minorStopTimes;
     }
 
     /**
@@ -504,7 +504,7 @@ public class MapFragment extends Fragment implements
 	
 	public ArrayList<Marker> makeMarkers(List<MinorStop> minorStops, int color) {
 		LatLngBounds.Builder builder = new LatLngBounds.Builder();
-		ArrayList<Marker> markers = new ArrayList<Marker>();
+		ArrayList<Marker> markers = new ArrayList<>();
 		// For each loaded stop, create a marker at its coordinates
 		// and set its marker hex color
 		for(MinorStop ms : minorStops) {
