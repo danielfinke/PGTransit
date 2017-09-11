@@ -30,6 +30,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.finke.pgtransit.adapters.RoutesAdapter;
+import com.finke.pgtransit.extensions.OnBackPressedListener;
 import com.finke.pgtransit.model.Bus;
 import com.finke.pgtransit.model.MapPoint;
 import com.finke.pgtransit.model.MinorStop;
@@ -55,7 +56,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
  * selection
  */
 public class MapFragment extends Fragment implements
-		LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>, OnItemClickListener {
+        LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>,
+        OnItemClickListener,
+        OnBackPressedListener {
 
     private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
     private final static String MAP_DATA_BUNDLE_KEY = "bus_index";
@@ -210,14 +213,6 @@ public class MapFragment extends Fragment implements
 	public void onLowMemory() {
 		super.onLowMemory();
 		mMapView.onLowMemory();
-	}
-	
-	public boolean onBackPressed() {
-		if(mDrawer.isDrawerOpen(Gravity.END)) {
-			mDrawer.closeDrawer(Gravity.END);
-			return true;
-		}
-		return false;
 	}
 	
 	private class MinorStopInfoWindowAdapter implements InfoWindowAdapter {
@@ -527,4 +522,14 @@ public class MapFragment extends Fragment implements
 		
 		return markers;
 	}
+
+    @Override
+    public boolean onBackPressed() {
+        if(mDrawer.isDrawerOpen(Gravity.END)) {
+            mDrawer.closeDrawer(Gravity.END);
+            return true;
+        }
+        return false;
+    }
+
 }

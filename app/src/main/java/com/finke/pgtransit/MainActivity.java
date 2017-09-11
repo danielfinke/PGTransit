@@ -20,6 +20,7 @@ import com.finke.pgtransit.adapters.ViewPagerAdapter;
 import com.finke.pgtransit.database.BusDatabaseHelper;
 import com.finke.pgtransit.extensions.AdManager;
 import com.finke.pgtransit.extensions.AppRater;
+import com.finke.pgtransit.extensions.OnBackPressedListener;
 
 /* Handles all activity life cycle/UI interactions for the
  * Schedules and Maps tabs */
@@ -192,9 +193,16 @@ public class MainActivity extends AppCompatActivity {
 	public void onBackPressed() {
 		Fragment pagerFragment = mViewPagerAdapter.getItem(mViewPager.getCurrentItem());
 		FragmentManager fm = pagerFragment.getChildFragmentManager();
-		if(fm.getBackStackEntryCount() > 0) {
-			popBackStack();
-		}
+        if(pagerFragment instanceof OnBackPressedListener &&
+                ((OnBackPressedListener) pagerFragment).onBackPressed()) {
+            // No-op
+        }
+        else if(fm.getBackStackEntryCount() > 0) {
+            popBackStack();
+        }
+        else if(mViewPager.getCurrentItem() != 0) {
+            mViewPager.setCurrentItem(0);
+        }
 		else {
 			super.onBackPressed();
 		}
