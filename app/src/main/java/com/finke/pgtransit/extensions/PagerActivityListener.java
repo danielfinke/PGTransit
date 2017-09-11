@@ -1,7 +1,8 @@
 package com.finke.pgtransit.extensions;
 
-public interface OnBackPressedListener {
+public interface PagerActivityListener {
 
-    public boolean onBackPressed();
+    boolean onBackPressed();
+    void onTabSelected();
 
 }

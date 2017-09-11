@@ -8,10 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.finke.pgtransit.extensions.OnBackPressedListener;
+import com.finke.pgtransit.extensions.PagerActivityListener;
 
 public class PagerContainerFragment extends Fragment implements
-        OnBackPressedListener {
+        PagerActivityListener {
 
     private static final String CHILD_FRAGMENT_KEY = "CHILD_FRAGMENT";
 
@@ -59,10 +59,17 @@ public class PagerContainerFragment extends Fragment implements
 
     @Override
     public boolean onBackPressed() {
-        if(mReplacementFragment instanceof OnBackPressedListener) {
-            return ((OnBackPressedListener) mReplacementFragment).onBackPressed();
+        if(mReplacementFragment instanceof PagerActivityListener) {
+            return ((PagerActivityListener) mReplacementFragment).onBackPressed();
         }
         return false;
+    }
+
+    @Override
+    public void onTabSelected() {
+        if(mReplacementFragment instanceof PagerActivityListener) {
+            ((PagerActivityListener) mReplacementFragment).onTabSelected();
+        }
     }
 
 }

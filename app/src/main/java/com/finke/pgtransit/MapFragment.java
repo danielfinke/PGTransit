@@ -17,6 +17,8 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +32,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.finke.pgtransit.adapters.RoutesAdapter;
-import com.finke.pgtransit.extensions.OnBackPressedListener;
+import com.finke.pgtransit.extensions.PagerActivityListener;
 import com.finke.pgtransit.model.Bus;
 import com.finke.pgtransit.model.MapPoint;
 import com.finke.pgtransit.model.MinorStop;
@@ -58,7 +60,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 public class MapFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>,
         OnItemClickListener,
-        OnBackPressedListener {
+        PagerActivityListener {
 
     private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
     private final static String MAP_DATA_BUNDLE_KEY = "bus_index";
@@ -137,7 +139,6 @@ public class MapFragment extends Fragment implements
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 
-		setupActionBar();
         loadRoutes();
 	}
 	
@@ -331,10 +332,17 @@ public class MapFragment extends Fragment implements
 	}
 	
 	private void setupActionBar() {
-//		ActionBar actionBar = getActivity().getActionBar();
-//		actionBar.setTitle(R.string.mapTitle);
-//		actionBar.setHomeButtonEnabled(false);
-//		actionBar.setDisplayHomeAsUpEnabled(false);
+        Activity activity = getActivity();
+        if(activity != null) {
+            ActionBar actionBar = ((AppCompatActivity) activity).getSupportActionBar();
+
+            if (actionBar != null) {
+                actionBar.setTitle(R.string.app_name);
+                actionBar.setSubtitle("");
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                ((MainActivity) getActivity()).setMenuEnabled(false);
+            }
+        }
 	}
 
     /**
@@ -530,6 +538,11 @@ public class MapFragment extends Fragment implements
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onTabSelected() {
+        setupActionBar();
     }
 
 }

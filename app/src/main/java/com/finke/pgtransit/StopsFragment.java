@@ -21,15 +21,17 @@ import android.widget.ListView;
 
 import com.finke.pgtransit.ChangeDayDialogFragment.ChangeDayDialogListener;
 import com.finke.pgtransit.adapters.StopsAdapter;
+import com.finke.pgtransit.extensions.PagerActivityListener;
 import com.finke.pgtransit.loader.BusLoader;
 import com.finke.pgtransit.model.Bus;
 import com.finke.pgtransit.model.Stop;
 
 /* Displays a list of stops for a bus route */
 public class StopsFragment extends ListFragment implements
-		BusLoader.Callbacks,
-		LoaderManager.LoaderCallbacks<List<Stop>>,
-		ChangeDayDialogListener {
+        BusLoader.Callbacks,
+        LoaderManager.LoaderCallbacks<List<Stop>>,
+        PagerActivityListener,
+        ChangeDayDialogListener {
 	private static final String BUS_ID_KEY = "busId";
 	private static final String WEEKDAY_KEY = "weekday";
 
@@ -115,7 +117,9 @@ public class StopsFragment extends ListFragment implements
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_times, menu);
+        if(((MainActivity) getActivity()).getMenuEnabled()) {
+            inflater.inflate(R.menu.menu_times, menu);
+        }
     }
 	
 	@Override
@@ -198,4 +202,15 @@ public class StopsFragment extends ListFragment implements
 		frag.setWeekday(mWeekday);
         ((MainActivity)getActivity()).pushFragment(frag, 0);
 	}
+
+    @Override
+    public boolean onBackPressed() {
+        return false;
+    }
+
+    @Override
+    public void onTabSelected() {
+        setupActionBar();
+        ((MainActivity) getActivity()).setMenuEnabled(true);
+    }
 }

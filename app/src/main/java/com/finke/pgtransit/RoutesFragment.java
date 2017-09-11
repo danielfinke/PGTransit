@@ -20,17 +20,19 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.finke.pgtransit.adapters.RoutesAdapter;
+import com.finke.pgtransit.extensions.PagerActivityListener;
 import com.finke.pgtransit.model.Bus;
 
 /* Displays a list of bus routes */
-public class RoutesFragment extends ListFragment
-    implements LoaderManager.LoaderCallbacks<AsyncTaskResult<List<Bus>>> {
+public class RoutesFragment extends ListFragment implements
+        LoaderManager.LoaderCallbacks<AsyncTaskResult<List<Bus>>>,
+        PagerActivityListener {
     // This is the Adapter being used to display the list's data
     private RoutesAdapter mAdapter;
     
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         setHasOptionsMenu(true);
     }
 
@@ -71,9 +73,11 @@ public class RoutesFragment extends ListFragment
     
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.main_menu, menu);
+        if(((MainActivity) getActivity()).getMenuEnabled()) {
+            inflater.inflate(R.menu.main_menu, menu);
+        }
     }
-    
+
     /* Handle menu option interactions */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -147,5 +151,16 @@ public class RoutesFragment extends ListFragment
         StopsFragment frag = new StopsFragment();
         frag.setBusId((int)id);
         ((MainActivity)getActivity()).pushFragment(frag, 0);
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        return false;
+    }
+
+    @Override
+    public void onTabSelected() {
+        setupActionBar();
+        ((MainActivity) getActivity()).setMenuEnabled(true);
     }
 }

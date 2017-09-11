@@ -20,11 +20,16 @@ import com.finke.pgtransit.adapters.ViewPagerAdapter;
 import com.finke.pgtransit.database.BusDatabaseHelper;
 import com.finke.pgtransit.extensions.AdManager;
 import com.finke.pgtransit.extensions.AppRater;
-import com.finke.pgtransit.extensions.OnBackPressedListener;
+import com.finke.pgtransit.extensions.PagerActivityListener;
 
 /* Handles all activity life cycle/UI interactions for the
  * Schedules and Maps tabs */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        ViewPager.OnPageChangeListener {
+
+    private static final String MENU_ENABLED_KEY = "MENU_ENABLED";
+
+    private boolean mMenuEnabled = true;
 
 	// Container for Google AdMob advertisements
 	private LinearLayout mAdCont;
@@ -40,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
 	protected void onCreate(Bundle state) {
 		super.onCreate(state);
 		setContentView(R.layout.main_activity);
+
+        if(state != null) {
+            mMenuEnabled = state.getBoolean(MENU_ENABLED_KEY);
+        }
 		
 		// App rating service (prompts periodically)
 		AppRater.app_launched(this);
@@ -89,6 +98,13 @@ public class MainActivity extends AppCompatActivity {
 		super.onDestroy();
 	}
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean(MENU_ENABLED_KEY, mMenuEnabled);
+    }
+
     public AdManager getAdManager() { return mAdManager; }
 	
 	// Checks if ads were disabled by purchase
@@ -104,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
 		mViewPager = (ViewPager)findViewById(R.id.viewPager);
 		mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 		mViewPager.setAdapter(mViewPagerAdapter);
+        mViewPager.addOnPageChangeListener(this);
 
 		PagerTabStrip pagerTabStrip = (PagerTabStrip)findViewById(R.id.pagerTabStrip);
 		pagerTabStrip.setBackgroundColor(Color.BLACK);
@@ -187,14 +204,23 @@ public class MainActivity extends AppCompatActivity {
 		return super.onOptionsItemSelected(item);
 	}
 
-	/**
-	 *
-	 */
+    public boolean getMenuEnabled() {
+        return mMenuEnabled;
+    }
+
+    public void setMenuEnabled(boolean enabled) {
+        mMenuEnabled = enabled;
+        invalidateOptionsMenu();
+    }
+
+    /**
+     *
+     */
 	public void onBackPressed() {
 		Fragment pagerFragment = mViewPagerAdapter.getItem(mViewPager.getCurrentItem());
 		FragmentManager fm = pagerFragment.getChildFragmentManager();
-        if(pagerFragment instanceof OnBackPressedListener &&
-                ((OnBackPressedListener) pagerFragment).onBackPressed()) {
+        if(pagerFragment instanceof PagerActivityListener &&
+                ((PagerActivityListener) pagerFragment).onBackPressed()) {
             // No-op
         }
         else if(fm.getBackStackEntryCount() > 0) {
@@ -208,6 +234,24 @@ public class MainActivity extends AppCompatActivity {
 		}
 
 	}
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+//        Fragment pagerFragment = mViewPagerAdapter.getItem(mViewPager.getCurrentItem());
+//        if(pagerFragment instanceof PagerActivityListener) {
+//            ((PagerActivityListener) pagerFragment).onTabSelected();
+//        }
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
+    }
 	
 	/* Redirects hardware menu key button to each fragment that
 	 * wants it
