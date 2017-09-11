@@ -13,7 +13,7 @@ import com.finke.pgtransit.extensions.OnBackPressedListener;
 public class PagerContainerFragment extends Fragment implements
         OnBackPressedListener {
 
-    private static final String CHILD_FRAGMENT_KEY = "CHILD_FRAGMENT_KEY";
+    private static final String CHILD_FRAGMENT_KEY = "CHILD_FRAGMENT";
 
     private Fragment mReplacementFragment;
 
