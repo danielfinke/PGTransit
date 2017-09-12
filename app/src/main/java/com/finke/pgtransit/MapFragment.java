@@ -99,10 +99,19 @@ public class MapFragment extends Fragment implements
 	/* Sets up the initial Google Map */
 	public void onCreate(Bundle state) {
 		super.onCreate(state);
-		mMapView = new MapView(getActivity());
+
+        Activity activity = getActivity();
+        mMapView = new MapView(activity);
 
 		Bundle mapViewState = state != null ? state.getBundle("mapViewState") : null;
 		mMapView.onCreate(mapViewState);
+
+        if(ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(activity,
+                    new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION },
+                    LOCATION_PERMISSIONS_REQUEST_CODE);
+        }
 	}
 
 	@Override
@@ -152,11 +161,6 @@ public class MapFragment extends Fragment implements
         if(ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-        }
-        else {
-            ActivityCompat.requestPermissions(activity,
-                    new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION },
-                    LOCATION_PERMISSIONS_REQUEST_CODE);
         }
         
         // Show times of each stop
