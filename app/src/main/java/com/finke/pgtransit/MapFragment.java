@@ -32,7 +32,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.finke.pgtransit.adapters.RoutesAdapter;
-import com.finke.pgtransit.extensions.Stackable;
+import com.finke.pgtransit.extensions.PagerActivityListener;
 import com.finke.pgtransit.model.Bus;
 import com.finke.pgtransit.model.MapPoint;
 import com.finke.pgtransit.model.MinorStop;
@@ -58,7 +58,11 @@ import com.google.android.gms.maps.model.PolylineOptions;
  * selection
  */
 public class MapFragment extends Fragment implements
-		Stackable, LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>, OnItemClickListener {
+        LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>,
+        OnItemClickListener,
+        PagerActivityListener {
+
+    private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
     private final static String MAP_DATA_BUNDLE_KEY = "bus_index";
 
 	// Map defaults position to center of PG when no routes selected
@@ -96,13 +100,14 @@ public class MapFragment extends Fragment implements
 	public void onCreate(Bundle state) {
 		super.onCreate(state);
 		mMapView = new MapView(getActivity());
-		mMapView.onCreate(state);
+
+		Bundle mapViewState = state != null ? state.getBundle("mapViewState") : null;
+		mMapView.onCreate(mapViewState);
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
-		Activity activity = getActivity();
 		// Inflate the layout for this fragment
 		DrawerLayout v = (DrawerLayout) inflater.inflate(R.layout.map, container, false);
 		RelativeLayout frame = (RelativeLayout) v.findViewById(R.id.mapFrame);
@@ -116,20 +121,15 @@ public class MapFragment extends Fragment implements
 			// Pop out the sidebar
 			@Override
 			public void onClick(View v) {
-				mDrawer.openDrawer(Gravity.RIGHT);
+				mDrawer.openDrawer(Gravity.END);
 			}
 		});
 
 		// Needs to call MapsInitializer before doing any CameraUpdateFactory calls
-		MapsInitializer.initialize(activity);
+		MapsInitializer.initialize(getActivity());
 
 		// Gets to GoogleMap from the MapView and does initialization stuff
 		mMap = mMapView.getMap();
-        // Only set location enabled if permission is granted
-		if (ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
-				ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        }
 		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LON), 12));
         mMap.setInfoWindowAdapter(new MinorStopInfoWindowAdapter());
 		
@@ -139,7 +139,6 @@ public class MapFragment extends Fragment implements
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
 
-		setupActionBar();
         loadRoutes();
 	}
 	
@@ -147,6 +146,18 @@ public class MapFragment extends Fragment implements
 		super.onResume();
 		
 		mMapView.onResume();
+
+        // Only set location enabled if permission is granted
+        Activity activity = getActivity();
+        if(ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+        }
+        else {
+            ActivityCompat.requestPermissions(activity,
+                    new String[] { android.Manifest.permission.ACCESS_FINE_LOCATION },
+                    LOCATION_PERMISSIONS_REQUEST_CODE);
+        }
         
         // Show times of each stop
         mMap.setOnMarkerClickListener(new OnMarkerClickListener() {
@@ -172,7 +183,7 @@ public class MapFragment extends Fragment implements
 					if(index != -1) {
 						mDialog.setMinorStop(mMinorStops.get(i).get(index));
 						mDialog.setBus(mBusses.get(i));
-						mDialog.show(getActivity().getSupportFragmentManager(), null);
+						mDialog.show(getActivity().getFragmentManager(), null);
 					}
 				}
 			}
@@ -194,29 +205,15 @@ public class MapFragment extends Fragment implements
 	}
 	
 	public void onSaveInstanceState(Bundle state) {
+		Bundle mapViewState = new Bundle(state);
+		mMapView.onSaveInstanceState(mapViewState);
+		state.putBundle("mapViewState", mapViewState);
 		super.onSaveInstanceState(state);
-		mMapView.onSaveInstanceState(state);
 	}
 	
 	public void onLowMemory() {
 		super.onLowMemory();
 		mMapView.onLowMemory();
-	}
-	
-	public void saveState(Bundle state) {
-		
-	}
-	
-	public void restoreState(Bundle state) {
-		
-	}
-	
-	public boolean onBackPressed() {
-		if(mDrawer.isDrawerOpen(Gravity.RIGHT)) {
-			mDrawer.closeDrawer(Gravity.RIGHT);
-			return true;
-		}
-		return false;
 	}
 	
 	private class MinorStopInfoWindowAdapter implements InfoWindowAdapter {
@@ -305,7 +302,7 @@ public class MapFragment extends Fragment implements
 				mRouteShowing = new boolean[result.size()];
 				mMinorStops = new ArrayList<>();
 				mMinorStopTimes = new ArrayList<>();
-				mMarkers = new ArrayList<ArrayList<Marker>>();
+				mMarkers = new ArrayList<>();
 				mPolylines = new ArrayList<>();
 				for(int i = 0; i < result.size(); i++) {
 					mMinorStops.add(new ArrayList<MinorStop>());
@@ -331,14 +328,21 @@ public class MapFragment extends Fragment implements
 		// Prepare the loader.  Either re-connect with an existing one,
 		// or start a new one.
 		RouteLoadTask task = new RouteLoadTask();
-		task.execute(new Void[] { });
+		task.execute();
 	}
 	
 	private void setupActionBar() {
-		ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(R.string.mapTitle);
-		actionBar.setHomeButtonEnabled(false);
-		actionBar.setDisplayHomeAsUpEnabled(false);
+        Activity activity = getActivity();
+        if(activity != null) {
+            ActionBar actionBar = ((AppCompatActivity) activity).getSupportActionBar();
+
+            if (actionBar != null) {
+                actionBar.setTitle(R.string.app_name);
+                actionBar.setSubtitle("");
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                ((MainActivity) getActivity()).setMenuEnabled(false);
+            }
+        }
 	}
 
     /**
@@ -451,11 +455,11 @@ public class MapFragment extends Fragment implements
      * @author Daniel Finke
      * @since 2016-09-05
      */
-    public class AsyncTaskResult {
+    class AsyncTaskResult {
         public int color;
-        public List<MapPoint> mapPoints;
-        public List<MinorStop> minorStops;
-        public List<MinorStopTime> minorStopTimes;
+        List<MapPoint> mapPoints;
+        List<MinorStop> minorStops;
+        List<MinorStopTime> minorStopTimes;
     }
 
     /**
@@ -508,7 +512,7 @@ public class MapFragment extends Fragment implements
 	
 	public ArrayList<Marker> makeMarkers(List<MinorStop> minorStops, int color) {
 		LatLngBounds.Builder builder = new LatLngBounds.Builder();
-		ArrayList<Marker> markers = new ArrayList<Marker>();
+		ArrayList<Marker> markers = new ArrayList<>();
 		// For each loaded stop, create a marker at its coordinates
 		// and set its marker hex color
 		for(MinorStop ms : minorStops) {
@@ -526,4 +530,19 @@ public class MapFragment extends Fragment implements
 		
 		return markers;
 	}
+
+    @Override
+    public boolean onBackPressed() {
+        if(mDrawer.isDrawerOpen(Gravity.END)) {
+            mDrawer.closeDrawer(Gravity.END);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void onTabSelected() {
+        setupActionBar();
+    }
+
 }

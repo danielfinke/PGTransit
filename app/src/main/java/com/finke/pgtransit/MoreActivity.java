@@ -100,7 +100,7 @@ public class MoreActivity extends AppCompatActivity {
 			@Override
 			public void onClick(View arg0) {
 				mAboutDialog = new AboutDialogFragment();
-				mAboutDialog.show(getSupportFragmentManager(), null);
+				mAboutDialog.show(getFragmentManager(), null);
 			}
 			
 		});

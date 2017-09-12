@@ -4,13 +4,13 @@ import java.util.List;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,31 +20,19 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.finke.pgtransit.adapters.RoutesAdapter;
-import com.finke.pgtransit.extensions.Stackable;
+import com.finke.pgtransit.extensions.PagerActivityListener;
 import com.finke.pgtransit.model.Bus;
 
 /* Displays a list of bus routes */
-public class RoutesFragment extends ListFragment
-    implements Stackable, LoaderManager.LoaderCallbacks<List<Bus>> {
-    
-    // Preserves scroll position through StackController
-    private int mScrollIndex;
-    private int mScrollOffset;
-    // True if content view has been created
-    // Prevents saving scroll position if not yet ready
-    private boolean mContentViewCreated;
-    
+public class RoutesFragment extends ListFragment implements
+        LoaderManager.LoaderCallbacks<AsyncTaskResult<List<Bus>>>,
+        PagerActivityListener {
     // This is the Adapter being used to display the list's data
     private RoutesAdapter mAdapter;
     
-    public RoutesFragment() {
-        mScrollIndex = 0;
-        mScrollOffset = 0;
-    }
-    
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         setHasOptionsMenu(true);
     }
 
@@ -54,71 +42,42 @@ public class RoutesFragment extends ListFragment
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.list_routes, container, false);
     }
-    
-    public void onViewCreated(View view, Bundle state) {
-        super.onViewCreated(view, state);
-        mContentViewCreated = true;
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
         setupActionBar();
         loadRoutes();
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        mContentViewCreated = false;
-    }
-    
-    // StackController will tell Fragment to save state
-    public void saveState(Bundle state) {
-        int scrollIndex;
-        int scrollOffset;
-        if(mContentViewCreated) {
-            scrollIndex = getListView().getFirstVisiblePosition();
-            scrollOffset = getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop();
-        }
-        else {
-            scrollIndex = mScrollIndex;
-            scrollOffset = mScrollOffset;
-        }
-        state.putInt("scrollIndex", scrollIndex);
-        state.putInt("scrollOffset", scrollOffset);
-    }
-    
-    // StackController will request state restores
-    public void restoreState(Bundle state) {
-        mScrollIndex = state.getInt("scrollIndex");
-        mScrollOffset = state.getInt("scrollOffset");
-    }
-    
-    public boolean onBackPressed() {
-        return false;
-    }
-    
-    private void setupActionBar() {
-        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-        actionBar.setTitle(R.string.routeListTitle);
-        actionBar.setHomeButtonEnabled(false);
-        actionBar.setDisplayHomeAsUpEnabled(false);
-    }
-    
     // Initiate bus route loading from SQLite db
     private void loadRoutes() {
         // Create an empty adapter we will use to display the loaded data.
         // We pass null for the cursor, then update it in onLoadFinished()
         mAdapter = new RoutesAdapter(getActivity());
         setListAdapter(mAdapter);
-        
-        // Prepare the loader.  Either re-connect with an existing one,
-        // or start a new one.
-        getLoaderManager().restartLoader(0, null, this).forceLoad();
+
+        getLoaderManager().initLoader(0, null, this);
+    }
+
+    private void setupActionBar() {
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+
+        if(actionBar != null) {
+            actionBar.setTitle(R.string.app_name);
+            actionBar.setSubtitle("");
+            actionBar.setDisplayHomeAsUpEnabled(false);
+        }
     }
     
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.main_menu, menu);
+        if(((MainActivity) getActivity()).getMenuEnabled()) {
+            inflater.inflate(R.menu.main_menu, menu);
+        }
     }
-    
+
     /* Handle menu option interactions */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -139,49 +98,69 @@ public class RoutesFragment extends ListFragment
     /* Activity delegates onKeyUp(...) to this fragment to
      * allow hardware menu button to open 3dot menu
      */
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_MENU) {
-            View v = getActivity().findViewById(R.id.overflowMenu);
-            v.performClick();
-            return true;
-        }
-        return false;
-    }
+//    public boolean onKeyUp(int keyCode, KeyEvent event) {
+//        if(keyCode == KeyEvent.KEYCODE_MENU) {
+//            View v = getActivity().findViewById(R.id.overflowMenu);
+//            v.performClick();
+//            return true;
+//        }
+//        return false;
+//    }
     
     // Called when a new Loader needs to be created
-    public AsyncTaskLoader<List<Bus>> onCreateLoader(int id, Bundle args) {
+    public AsyncTaskLoader<AsyncTaskResult<List<Bus>>> onCreateLoader(int id, Bundle args) {
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        return new AsyncTaskLoader<List<Bus>>(getActivity()) {
-            public List<Bus> loadInBackground() {
+        return new AsyncTaskLoader<AsyncTaskResult<List<Bus>>>(getActivity()) {
+            @Override
+            protected void onStartLoading() {
+                forceLoad();
+            }
+
+            public AsyncTaskResult<List<Bus>> loadInBackground() {
                 try {
-                    return Bus.fetchFromDatabase();
+                    return new AsyncTaskResult<>(Bus.fetchFromDatabase());
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return null;
+                    AsyncTaskResult<List<Bus>> result = new AsyncTaskResult<>(null);
+                    result.setException(e);
+                    return result;
                 }
             }
         };
     }
     
     // Called when a previously created loader has finished loading
-    public void onLoadFinished(Loader<List<Bus>> loader, List<Bus> result) {
-        if(result != null) {
-            mAdapter.setItems(result);
+    public void onLoadFinished(Loader<AsyncTaskResult<List<Bus>>> loader, AsyncTaskResult<List<Bus>> result) {
+        if(!result.hasException()) {
+            mAdapter.setItems(result.getData());
             mAdapter.notifyDataSetChanged();
         }
-        getListView().setSelectionFromTop(mScrollIndex, mScrollOffset);
+        else {
+            getLoaderManager().restartLoader(loader.getId(), null, this);
+        }
     }
-    
+
     // Called when a previously created loader is reset, making the data unavailable
-    public void onLoaderReset(Loader<List<Bus>> loader) {
+    public void onLoaderReset(Loader<AsyncTaskResult<List<Bus>>> loader) {
         mAdapter.notifyDataSetInvalidated();
     }
     
     // Choosing a bus route takes you to the stops for that route
     public void onListItemClick(ListView i, View v, int position, long id) {
         StopsFragment frag = new StopsFragment();
-        frag.setBus(mAdapter.getBus(position));
-        ((MainActivity)getActivity()).getStackController().push(frag);
+        frag.setBusId((int)id);
+        ((MainActivity)getActivity()).pushFragment(frag, 0);
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        return false;
+    }
+
+    @Override
+    public void onTabSelected() {
+        setupActionBar();
+        ((MainActivity) getActivity()).setMenuEnabled(true);
     }
 }

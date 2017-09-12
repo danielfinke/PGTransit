@@ -15,7 +15,7 @@
     <string name="iab_prefs">iabPrefs</string>
     
     <string name="map_image_button">&quot;Go Back&quot;</string>
-    
+
     <string name="routeListTitle">PG Bus Routes</string>
     <string name="actionMenu">Menu</string>
     <string name="menuItemBasicMap">View Basic Map</string>
@@ -25,7 +25,7 @@
     <string name="mapDrawerButton">Select Routes</string>
     <string name="no_routes">No Routes</string>
     <string name="route_not_operating">The selected route does not operate on</string>
-    
+
     <string name="estimated_arrival_text">Estimated Arrival:</string>
     <string name="estimated_departure_text">Estimated Departure:</string>
     <string name="estimated_time_format">%1$d:%2$02d %3$s</string>
@@ -33,11 +33,11 @@
     <string name="pm">PM</string>
     <string name="no_more_arrivals_today">No more arrivals today</string>
     <string name="tap_for_more_times_text">Tap popup for more times</string>
-    
+
     <!-- More view -->
     <string name="more_about_header">About</string>
     <string name="more_about_text">About the PG Transit app</string>
-    <string name="more_about_dialog">Bus routes and schedules in this product or service are effective as of Sep 4 2016. This application assumes no responsibility for the accuracy of data. \u00A9 2016 Daniel Finke. Images and partial design courtesy and \u00A9 2012&#8211;2013 Xinyi Zhuang, UNBC Artificial and Intelligence lab.</string>
+    <string name="more_about_dialog">Bus routes and schedules in this product or service are effective as of Sep 5 2017. This application assumes no responsibility for the accuracy of data. \u00A9 2017 Daniel Finke. Images and partial design courtesy and \u00A9 2012&#8211;2013 Xinyi Zhuang, UNBC Artificial and Intelligence lab.</string>
     <string name="more_share_header">Invite to PG Transit</string>
     <string name="more_share_body">Hey! You should check out this awesome transit app for Android:\n</string>
     <string name="more_share_sms">Share by Text Message</string>
@@ -51,7 +51,7 @@
     <string name="more_feedback_header">Feedback</string>
     <string name="more_feedback_rate">Rate this app</string>
     <string name="more_feedback_bugs">Report bugs</string>
-    
+
     <!-- Placeholders for XML -->
     <string name="circle_placeholder">15</string>
     <string name="circle_content_desc">Route Icon</string>

@@ -3,8 +3,8 @@ package com.finke.pgtransit;
 import java.util.List;
 
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -21,22 +21,22 @@ import android.widget.ListView;
 
 import com.finke.pgtransit.ChangeDayDialogFragment.ChangeDayDialogListener;
 import com.finke.pgtransit.adapters.StopsAdapter;
-import com.finke.pgtransit.extensions.Stackable;
+import com.finke.pgtransit.extensions.PagerActivityListener;
+import com.finke.pgtransit.loader.BusLoader;
 import com.finke.pgtransit.model.Bus;
 import com.finke.pgtransit.model.Stop;
 
 /* Displays a list of stops for a bus route */
-public class StopsFragment extends ListFragment implements Stackable,
-	LoaderManager.LoaderCallbacks<List<Stop>>, ChangeDayDialogListener {
-	
-	// Preserves scroll position through StackController
-	private int mScrollIndex;
-	private int mScrollOffset;
-	// True if content view has been created
-	// Prevents saving scroll position if not yet ready
-	private boolean mContentViewCreated;
-	// Selected bus model, whose stops are being shown
-	private Bus mBus;
+public class StopsFragment extends ListFragment implements
+        BusLoader.Callbacks,
+        LoaderManager.LoaderCallbacks<List<Stop>>,
+        PagerActivityListener,
+        ChangeDayDialogListener {
+	private static final String BUS_ID_KEY = "busId";
+	private static final String WEEKDAY_KEY = "weekday";
+
+	private int mBusId;
+    private Bus mBus;
 	// The weekday for which arrival times are being shown
 	private String mWeekday;
 	private StopsAdapter mAdapter;
@@ -44,16 +44,17 @@ public class StopsFragment extends ListFragment implements Stackable,
 	private ChangeDayDialogFragment mChgDayDialog;
 	
 	public StopsFragment() {
-		mScrollIndex = 0;
-		mScrollOffset = 0;
-		mBus = null;
 		// On view, the current weekday/period is chosen
 		mWeekday = Utils.getCurrentWeekday();
-		mChgDayDialog = null;
 	}
 	
-	public void onCreate(Bundle state) {
-		super.onCreate(state);
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		if(savedInstanceState != null) {
+			mBusId = savedInstanceState.getInt(BUS_ID_KEY);
+			mWeekday = savedInstanceState.getString(WEEKDAY_KEY);
+		}
 		
 		setHasOptionsMenu(true);
 	}
@@ -63,101 +64,63 @@ public class StopsFragment extends ListFragment implements Stackable,
         Bundle savedInstanceState) {
         return inflater.inflate(R.layout.list_stops, container, false);
     }
-	
-	public void onViewCreated(View view, Bundle state) {
-		super.onViewCreated(view, state);
-		mContentViewCreated = true;
-		
+
+	@Override
+	public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+
 		setupActionBar();
 		loadStops();
 	}
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        mContentViewCreated = false;
-    }
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
 
-    // StackController will tell Fragment to save state
-	// Pseudo saves bus instance by storing its PK in the bundle
-	public void saveState(Bundle state) {
-		int scrollIndex;
-		int scrollOffset;
-		if(mContentViewCreated) {
-			scrollIndex = getListView().getFirstVisiblePosition();
-			scrollOffset = getListView().getChildAt(0) == null ? 0 : getListView().getChildAt(0).getTop();
-		}
-		else {
-			scrollIndex = mScrollIndex;
-			scrollOffset = mScrollOffset;
-		}
-		state.putInt("scrollIndex", scrollIndex);
-		state.putInt("scrollOffset", scrollOffset);
-		state.putInt("bus", mBus.getId());
-		state.putString("weekday", mWeekday);
+		outState.putInt(BUS_ID_KEY, mBusId);
+		outState.putString(WEEKDAY_KEY, mWeekday);
 	}
-	
-	// StackController will request state restores
-	// Also restores the Bus instance having stored its PK
-	public void restoreState(Bundle state) {
-		mScrollIndex = state.getInt("scrollIndex");
-		mScrollOffset = state.getInt("scrollOffset");
-		mWeekday = state.getString("weekday");
-		try {
-			mBus = Bus.fetchFromDatabase(state.getInt("bus"));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public boolean onBackPressed() {
-		return false;
-	}
-	
-	// Set bus model whose stops will be displayed when pushing fragment
-	// Since using fragments, no intents used
-	public void setBus(Bus bus) {
-		mBus = bus;
+
+	/**
+	 *
+	 * @param busId
+	 */
+	public void setBusId(int busId) {
+		mBusId = busId;
 	}
 	
 	private void setupActionBar() {
-		ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
-		actionBar.setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+
+        if(actionBar != null) {
+            actionBar.setSubtitle("");
+
+            if(mBus == null) {
+                new BusLoader(this).execute(mBusId);
+            }
+            else {
+                actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" +
+                        Utils.getWeekdayString(mWeekday) + ")");
+            }
+
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 	}
 	
 	// Initiate stop locn loading from SQLite db
 	private void loadStops() {
 		mAdapter = new StopsAdapter(getActivity());
 		setListAdapter(mAdapter);
-		
-		// Prepare the loader.  Either re-connect with an existing one,
-		// or start a new one.
-		getLoaderManager().restartLoader(0, null, this).forceLoad();
+
+		getLoaderManager().initLoader(0, null, this);
 	}
-	
-	/* No longer used since maps have been moved to their own tab */
-	/*public boolean isGooglePlayServicesInstalled() {
-		return GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity()) ==
-    		  ConnectionResult.SUCCESS;
-	}
-	
-	public boolean isGoogleMapsInstalled() {
-	    try
-	    {
-	        getActivity().getPackageManager().getApplicationInfo("com.google.android.apps.maps", 0 );
-	        return true;
-	    } 
-	    catch(PackageManager.NameNotFoundException e)
-	    {
-	        return false;
-	    }
-	}*/
-	
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-	   inflater.inflate(R.menu.menu_times, menu);
-	}
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        if(((MainActivity) getActivity()).getMenuEnabled()) {
+            inflater.inflate(R.menu.menu_times, menu);
+        }
+    }
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -174,13 +137,24 @@ public class StopsFragment extends ListFragment implements Stackable,
 		return super.onOptionsItemSelected(item);
 	}
 
+	@Override
+	public void onBusLoaded(Bus bus) {
+		mBus = bus;
+		setupActionBar();
+	}
+
 	// Fetches from SQLite database in separate thread
 	@Override
 	public AsyncTaskLoader<List<Stop>> onCreateLoader(int arg0, Bundle arg1) {
 		return new AsyncTaskLoader<List<Stop>>(getActivity()) {
+			@Override
+			protected void onStartLoading() {
+				forceLoad();
+			}
+
 			public List<Stop> loadInBackground() {
 				try {
-					return Stop.fetchFromDatabase(mBus.getId(), mWeekday);
+					return Stop.fetchFromDatabase(mBusId, mWeekday);
 				} catch (Exception e) {
 					e.printStackTrace();
 					return null;
@@ -196,11 +170,6 @@ public class StopsFragment extends ListFragment implements Stackable,
 			mAdapter.setItems(result);
 			mAdapter.notifyDataSetChanged();
 		}
-		// Restores scroll position if state was restored
-		// and had triggered a data load
-		ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-		actionBar.setTitle(mBus.getNumber() + " " + mBus.getName() + " (" + Utils.getWeekdayString(mWeekday) + ")");
-		getListView().setSelectionFromTop(mScrollIndex, mScrollOffset);
 	}
 
 	@Override
@@ -211,7 +180,8 @@ public class StopsFragment extends ListFragment implements Stackable,
 	// Changes the viewed day, so time slots are fetched for another
 	public void onDialogPositiveClick(DialogFragment dialog) {
 		mWeekday = ((ChangeDayDialogFragment)dialog).getWeekday();
-		getLoaderManager().restartLoader(0, null, this).forceLoad();
+		getLoaderManager().restartLoader(0, null, this);
+        setupActionBar();
 	}
 
 	public void onDialogNegativeClick(DialogFragment dialog) {
@@ -227,9 +197,20 @@ public class StopsFragment extends ListFragment implements Stackable,
 		// Behind ad (if applicable), push the times fragment for the
 		// chosen stop
 		TimesFragment frag = new TimesFragment();
-		frag.setStop(mAdapter.getStop(position));
+		frag.setBusId(mBusId);
+		frag.setStopId(mAdapter.getStop(position).getId());
 		frag.setWeekday(mWeekday);
-		((MainActivity)getActivity()).getStackController().push(frag);
+        ((MainActivity)getActivity()).pushFragment(frag, 0);
 	}
 
+    @Override
+    public boolean onBackPressed() {
+        return false;
+    }
+
+    @Override
+    public void onTabSelected() {
+        setupActionBar();
+        ((MainActivity) getActivity()).setMenuEnabled(true);
+    }
 }
