@@ -14,7 +14,7 @@ import java.util.List;
 
 public class BusDatabaseHelper extends DataBaseHelper {
 
-	private static final int DATABASE_VERSION = 9;
+    private static final int DATABASE_VERSION = 10;
     private static BusDatabaseHelper instance;
     
     public static BusDatabaseHelper getInstance() throws Exception {
