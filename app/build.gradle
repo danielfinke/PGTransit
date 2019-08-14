@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.2'
 
     defaultConfig {
         applicationId "com.finke.pgtransit"
@@ -24,11 +23,11 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.facebook.android:facebook-android-sdk:3.23.0'
-    compile 'com.google.android.gms:play-services-ads:9.0.0'
-    compile 'com.google.android.gms:play-services-auth:9.0.0'
-    compile 'com.google.android.gms:play-services-gcm:9.0.0'
-    compile 'com.google.android.gms:play-services-maps:9.0.0'
-    compile project(':scaleimageviewandroid')
+    implementation 'com.android.support:appcompat-v7:25.3.1'
+    implementation 'com.facebook.android:facebook-android-sdk:3.23.0'
+    implementation 'com.google.android.gms:play-services-ads:9.0.0'
+    implementation 'com.google.android.gms:play-services-auth:9.0.0'
+    implementation 'com.google.android.gms:play-services-gcm:9.0.0'
+    implementation 'com.google.android.gms:play-services-maps:9.0.0'
+    implementation project(':scaleimageviewandroid')
 }
