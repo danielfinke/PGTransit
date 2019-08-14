@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
@@ -12,13 +13,7 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +25,10 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.AsyncTaskLoader;
+import androidx.loader.content.Loader;
 
 import com.finke.pgtransit.adapters.RoutesAdapter;
 import com.finke.pgtransit.extensions.PagerActivityListener;
@@ -46,6 +45,8 @@ import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -57,9 +58,10 @@ import com.google.android.gms.maps.model.PolylineOptions;
 /* Displays Google Map with bus route lines and sidebar for route
  * selection
  */
-public class MapFragment extends Fragment implements
+public class MapFragment extends SupportMapFragment implements
         LoaderManager.LoaderCallbacks<MapFragment.AsyncTaskResult>,
         OnItemClickListener,
+        OnMapReadyCallback,
         PagerActivityListener {
 
     private final static int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
@@ -137,11 +139,8 @@ public class MapFragment extends Fragment implements
 		// Needs to call MapsInitializer before doing any CameraUpdateFactory calls
 		MapsInitializer.initialize(getActivity());
 
-		// Gets to GoogleMap from the MapView and does initialization stuff
-		mMap = mMapView.getMap();
-		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LON), 12));
-        mMap.setInfoWindowAdapter(new MinorStopInfoWindowAdapter());
-		
+		getMapAsync(this);
+
 		return v;
     }
 	
@@ -338,7 +337,7 @@ public class MapFragment extends Fragment implements
 	private void setupActionBar() {
         Activity activity = getActivity();
         if(activity != null) {
-            ActionBar actionBar = ((AppCompatActivity) activity).getSupportActionBar();
+            ActionBar actionBar = activity.getActionBar();
 
             if (actionBar != null) {
                 actionBar.setTitle(R.string.app_name);
@@ -549,4 +548,11 @@ public class MapFragment extends Fragment implements
         setupActionBar();
     }
 
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        // Gets to GoogleMap from the MapView and does initialization stuff
+        mMap = googleMap;
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(DEFAULT_LAT, DEFAULT_LON), 12));
+        mMap.setInfoWindowAdapter(new MinorStopInfoWindowAdapter());
+    }
 }

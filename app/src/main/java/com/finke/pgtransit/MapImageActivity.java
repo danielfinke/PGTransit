@@ -1,10 +1,11 @@
 package com.finke.pgtransit;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 
 /* Displays JPG full screen image of map, supplied by
  * PG Transit website

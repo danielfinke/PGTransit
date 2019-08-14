@@ -1,9 +1,10 @@
 package com.finke.pgtransit.adapters;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.finke.pgtransit.MapFragment;
 import com.finke.pgtransit.PagerContainerFragment;

@@ -7,14 +7,15 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.view.PagerTabStrip;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.viewpager.widget.ViewPager;
 
 import com.finke.pgtransit.adapters.ViewPagerAdapter;
 import com.finke.pgtransit.database.BusDatabaseHelper;
@@ -24,7 +25,7 @@ import com.finke.pgtransit.extensions.PagerActivityListener;
 
 /* Handles all activity life cycle/UI interactions for the
  * Schedules and Maps tabs */
-public class MainActivity extends AppCompatActivity implements
+public class MainActivity extends FragmentActivity implements
         ViewPager.OnPageChangeListener {
 
     private static final String MENU_ENABLED_KEY = "MENU_ENABLED";

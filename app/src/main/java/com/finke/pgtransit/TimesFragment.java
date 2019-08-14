@@ -2,17 +2,17 @@ package com.finke.pgtransit;
 
 import java.util.List;
 
+import android.app.ActionBar;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ListFragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.fragment.app.ListFragment;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.AsyncTaskLoader;
+import androidx.loader.content.Loader;
 
 import com.finke.pgtransit.adapters.TimesAdapter;
 import com.finke.pgtransit.loader.BusLoader;
@@ -94,7 +94,7 @@ public class TimesFragment extends ListFragment implements
     }
 
     private void setupActionBar() {
-        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        ActionBar actionBar = getActivity().getActionBar();
 
         if(actionBar != null) {
             if(mBus == null) {
